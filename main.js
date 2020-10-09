@@ -70,67 +70,68 @@ app.whenReady().then(() => {
 
     /* Build the menu */
     const menu = Menu.buildFromTemplate([
-	    {
-	      label: 'Zoom In',
-	      //accelerator: 'PageUp',
-	      click: () => {
-	        var webContents = win.webContents
+        {
+          label: 'Zoom In',
+          //accelerator: 'PageUp',
+          click: () => {
+            var webContents = win.webContents
             /* JS messes up when doing arithmetics against floats */
-	        var zoomFactor = Math.round(webContents.getZoomFactor() * 100 + 10) / 100;
-	        webContents.setZoomFactor(zoomFactor);
-	      }
-	    },
-	    {
-	      label: 'Zoom Out',
-	      //accelerator: 'PageDown',
-	      click: () => {
-	        var webContents = win.webContents
+            var zoomFactor = Math.round(webContents.getZoomFactor() * 100 + 10) / 100;
+            webContents.setZoomFactor(zoomFactor);
+          }
+        },
+        {
+          label: 'Zoom Out',
+          //accelerator: 'PageDown',
+          click: () => {
+            var webContents = win.webContents
             /* JS messes up when doing arithmetics against floats */
-	        var zoomFactor = Math.round(webContents.getZoomFactor() * 100 - 10) / 100;
-	        if (zoomFactor > 0) webContents.setZoomFactor(zoomFactor);
-	      }
-	    },
-	    {
-	      label: 'Reset Zoom',
-	      //accelerator: 'PageDown',
-	      click: () => {
-	        var webContents = win.webContents
-	        var currentZoomFactor = webContents.getZoomFactor();
-	        webContents.setZoomFactor(1);
-	      }
-	    },
-	    {
-	      label: 'More',
-	      submenu: [
-		    {
-		      label: 'Reload',
-		      click: () => {
-		          win.loadURL("http://transformice.com");
-		      }
-		    },
-		    {
-		      label: 'Fullscreen',
-		      click: () => {
-		          win.setFullScreen(!win.isFullScreen());
-		      }
-		    },
-		    {
-		      label: 'Fit Window',
-		      click: () => {
-		          win.unmaximize();
-		          win.setContentSize(800, 600);
-		      }
-		    },
-		    ]
-		}
-	]);
+            var zoomFactor = Math.round(webContents.getZoomFactor() * 100 - 10) / 100;
+            if (zoomFactor > 0) webContents.setZoomFactor(zoomFactor);
+          }
+        },
+        {
+          label: 'Reset Zoom',
+          //accelerator: 'PageDown',
+          click: () => {
+            var webContents = win.webContents
+            var currentZoomFactor = webContents.getZoomFactor();
+            webContents.setZoomFactor(1);
+          }
+        },
+        {
+          label: 'More',
+          submenu: [
+            {
+              label: 'Reload',
+              click: () => {
+                  win.loadURL("http://transformice.com");
+              }
+            },
+            {
+              label: 'Fullscreen',
+              click: () => {
+                  win.setFullScreen(!win.isFullScreen());
+              }
+            },
+            {
+              label: 'Fit Window',
+              click: () => {
+                  win.unmaximize();
+                  win.setFullScreen(false);
+                  win.setContentSize(800, 600);
+              }
+            },
+            ]
+        }
+    ]);
 
     win.setMenu(menu);
 
     win.loadURL("http://transformice.com");
 
     win.webContents.on('did-finish-load', () => {
-    	var hostname = url.parse(win.webContents.getURL()).hostname;
+        var hostname = url.parse(win.webContents.getURL()).hostname;
         if (hostname.includes("transformice.com")) {
             //win.webContents.executeJavaScript('console.log("'+url.parse(win.webContents.getURL()).hostname+'")');
             win.webContents.setZoomFactor(1);
@@ -139,7 +140,7 @@ app.whenReady().then(() => {
                     `
                     var ipc = window.ipcRenderer;
                     function pleinEcran(OUI) {
-                    	ipc.send("tfm-full-screen", OUI)
+                        ipc.send("tfm-full-screen", OUI)
                     }
                     document.getElementById("transformice").style.position="fixed";
                     document.getElementById("transformice").style.left="0";
@@ -158,7 +159,7 @@ app.whenReady().then(() => {
             
         } else {
             /* Ignored for tfm, that will trigger tfm-ready-to-show when needed */
-        	win.show();
+            win.show();
         }
     });
 
