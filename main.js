@@ -10,6 +10,58 @@ const {
 var path = require("path");
 var url = require("url");
 
+var win = null;
+var loadingWin = {};
+(function(loadingWin) {
+    var FILE_BASE = "file://" + __dirname;
+    var URL_LOADING = FILE_BASE + "/resources/loading.html";
+    var URL_FAILURE = FILE_BASE + "/resources/failure.html";
+
+    var loading_bw = null;
+    var errorDesc = null;
+
+    loadingWin.createWindow = function() {
+        loading_bw = new BrowserWindow({
+            width: 400,
+            height: 80,
+            show: false,
+            frame: false
+        });
+    }
+
+    loadingWin.closeWindow = function() {
+        loading_bw.destroy();
+    }
+
+    loadingWin.loadURL = function(url) {
+        win.loadURL(url);
+        win.hide();
+        loading_bw.loadURL(URL_LOADING);
+        loading_bw.show();
+    }
+
+    loadingWin.onReady = function() {
+        loading_bw.hide();
+        win.show();
+    }
+
+    loadingWin.onFail = function(errDesc) {
+        if (!loading_bw.isDestroyed() && !win.isDestroyed()) {
+            loading_bw.hide();
+            win.loadURL(URL_FAILURE);
+            win.show();
+        }
+        errorDesc = errDesc;
+    }
+
+    loadingWin.popErrorDesc = function() {
+        var e = errorDesc || "Unknown error";
+        errorDesc = null;
+        return e;
+    }
+
+})(loadingWin);
+
 /* Load flash plugin according to platform */
 {
     var pluginName
@@ -38,7 +90,12 @@ ipcMain.on("tfm-full-screen", (event, mode) => {
 
 /* TFM Window ready to show */
 ipcMain.on("tfm-ready-to-show", (event) => {
-    win.show();
+    loadingWin.onReady();
+});
+
+/* Get error from loading */
+ipcMain.on("should-send-error", (event) => {
+    win.webContents.send('set-error', loadingWin.popErrorDesc());
 });
 
 /* Close all apps */
@@ -67,6 +124,8 @@ app.whenReady().then(() => {
             preload: path.join(__dirname, "preload.js")
         }
     });
+
+    loadingWin.createWindow();
 
     /* Build the menu */
     const menu = Menu.buildFromTemplate([
@@ -105,7 +164,8 @@ app.whenReady().then(() => {
             {
               label: 'Reload',
               click: () => {
-                  win.loadURL("http://transformice.com");
+                  win.hide();
+                  loadingWin.loadURL("http://transformice.com");
               }
             },
             {
@@ -122,13 +182,20 @@ app.whenReady().then(() => {
                   win.setContentSize(800, 600);
               }
             },
+            {
+              label: 'DevTools',
+              accelerator: 'Ctrl+Shift+I',
+              click: () => {
+                  win.webContents.openDevTools();
+              }
+            },
             ]
         }
     ]);
 
     win.setMenu(menu);
 
-    win.loadURL("http://transformice.com");
+    loadingWin.loadURL("http://transformice.com");
 
     win.webContents.on('did-finish-load', () => {
         var hostname = url.parse(win.webContents.getURL()).hostname;
@@ -159,8 +226,28 @@ app.whenReady().then(() => {
             
         } else {
             /* Ignored for tfm, that will trigger tfm-ready-to-show when needed */
-            win.show();
+            loadingWin.onReady();
         }
+    });
+
+    win.webContents.on('did-fail-load', (event, errCode, errDesc) => {
+        loadingWin.onFail(errDesc);
+    });
+
+    /* Open external links in user's preferred browser rather than in Electron */
+    win.webContents.on('new-window', (event, url) => {
+        event.preventDefault();
+        electron.shell.openExternal(url);
+    });
+
+    /* Don't change the window title */
+    win.on('page-title-updated', (event) => {
+        event.preventDefault();
+    });
+
+    /* For now we assume that only one window can exist, therefore this means that the app must close */
+    win.on('closed', () => {
+        loadingWin.closeWindow();
     });
 
 });

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        body {
+            overflow: hidden;
+            background-color: #6A7495;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="error"></div>
+
+    <script>
+        var ipc = window.ipcRenderer;
+
+        ipc.on('set-error', (event, errDesc) => {
+            var el = document.getElementById("error");
+            el.innerHTML = errDesc;
+        });
+        ipc.send('should-send-error');
+
+    </script>
+</body>
+</html>
