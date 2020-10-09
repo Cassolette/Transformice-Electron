@@ -1,0 +1,49 @@
+<html>
+
+<head>
+    <title>Transformice</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+        <script type="text/javascript">
+            var flashvars = {};
+            var params = {};
+            var attributes = {};
+                    
+            
+            params.bgcolor="#6A7495"; 
+            params.play="true"; 
+            params.menu="true"; 
+            params.quality="high"; 
+            params.wmode="direct"; 
+            params.allownetworking="all"; 
+            params.allowscriptaccess="always"; 
+            params.allowfullscreen="true"; 
+            params.swfliveconnect="true"; 
+            
+            attributes.name = "";
+            attributes.styleclass = "";
+            attributes.align = "";          
+            swfobject.embedSWF("http://transformice.com/TransformiceChargeur.swf", "transformice", "100%", "100%", "9.0.0", false, flashvars, params, attributes);
+        </script>
+</head>
+
+<body>
+    <div id="transformice-container" style="width:100%;height:100%;position: fixed; left: 0px; top: 0px;">
+        <div id="transformice">
+            Get <a href="http://www.adobe.com/go/getflash">Adobe Flash Player</a>. Embedded with the help of <a href="http://embed-swf.org">embed-swf.org</a>.
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        swfobject.embedSWF("http://transformice.com/TransformiceChargeur.swf", "transformice", "100%", "100%", "9.0.0", null, null,
+            {
+                wmode: "direct",
+                allowScriptAccess: "always",
+                menu: true,
+                quality: "high",
+                bgcolor: "#6A7495",
+                play: true,
+            });
+    </script>
+</body>
+
+</html>
