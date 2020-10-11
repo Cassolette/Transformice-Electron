@@ -9,11 +9,34 @@ const {
 } = electron;
 var path = require("path");
 var url = require("url");
+var fs = require("fs");
+
+var FILE_BASE = "file://" + __dirname;
+
+/*
+ * Set up a local HTTP webserver which will respond with contents in /resources directory.
+ * This is needed because flash refuses to send ExternalInterface calls when loading the
+ * page directly from file://
+ *
+ * TODO: randomise and choose an available port.
+ */
+(function() {
+    var http = require("http");
+    var server = http.createServer(function (req, res) {
+      console.log(req.url)
+      fs.readFile(path.join(__dirname, "resources", req.url), (err, contents) => {
+            res.setHeader("Content-Type", "text/html");
+            res.writeHead(200);
+            res.end(contents);
+        })
+    });
+server.listen(8000);
+console.log("Set up local HTTP server @ http://localhost:8000/");
+})();
 
 var win = null;
 var loadingWin = {};
 (function(loadingWin) {
-    var FILE_BASE = "file://" + __dirname;
     var URL_LOADING = FILE_BASE + "/resources/loading.html";
     var URL_FAILURE = FILE_BASE + "/resources/failure.html";
 
@@ -88,11 +111,6 @@ ipcMain.on("tfm-full-screen", (event, mode) => {
     }
 });
 
-/* TFM Window ready to show */
-ipcMain.on("tfm-ready-to-show", (event) => {
-    loadingWin.onReady();
-});
-
 /* Get error from loading */
 ipcMain.on("should-send-error", (event) => {
     win.webContents.send('set-error', loadingWin.popErrorDesc());
@@ -165,7 +183,7 @@ app.whenReady().then(() => {
               label: 'Reload',
               click: () => {
                   win.hide();
-                  loadingWin.loadURL("http://transformice.com");
+                  loadingWin.loadURL("http://localhost:8000/tfm.html");
               }
             },
             {
@@ -195,39 +213,10 @@ app.whenReady().then(() => {
 
     win.setMenu(menu);
 
-    loadingWin.loadURL("http://transformice.com");
+    loadingWin.loadURL("http://localhost:8000/tfm.html");
 
     win.webContents.on('did-finish-load', () => {
-        var hostname = url.parse(win.webContents.getURL()).hostname;
-        if (hostname.includes("transformice.com")) {
-            //win.webContents.executeJavaScript('console.log("'+url.parse(win.webContents.getURL()).hostname+'")');
-            win.webContents.setZoomFactor(1);
-            /* Inject js to renderer */
-            win.webContents.executeJavaScript(
-                    `
-                    var ipc = window.ipcRenderer;
-                    function pleinEcran(OUI) {
-                        ipc.send("tfm-full-screen", OUI)
-                    }
-                    document.getElementById("transformice").style.position="fixed";
-                    document.getElementById("transformice").style.left="0";
-                    document.getElementById("transformice").style.top="0";
-                    document.getElementById("transformice").style.width="100%";
-                    document.getElementById("transformice").style.height="100%";
-                    
-                    
-                    document.getElementById("idPub").style.display="none";
-                    //document.getElementById("fb-comments").style.display="none";
-                    document.body.style.overflow = 'hidden';
-
-                    ipc.send("tfm-ready-to-show")
-                    `
-                ).catch(error => {});
-            
-        } else {
-            /* Ignored for tfm, that will trigger tfm-ready-to-show when needed */
-            loadingWin.onReady();
-        }
+        loadingWin.onReady();
     });
 
     win.webContents.on('did-fail-load', (event, errCode, errDesc) => {
@@ -245,7 +234,7 @@ app.whenReady().then(() => {
         event.preventDefault();
     });
 
-    /* For now we assume that only one window can exist, therefore this means that the app must close */
+    /* UGLY HACK WARNING: For now we assume that only one window can exist, therefore this means that the app must close */
     win.on('closed', () => {
         loadingWin.closeWindow();
     });
