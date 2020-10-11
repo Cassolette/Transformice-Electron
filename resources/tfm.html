@@ -207,7 +207,7 @@
 
     <div id="transformice" style="width:100%;height:100%;position: fixed; left: 0px; top: 0px;">
 
-        <!--embed id="swf2" src="http://www.transformice.com/TransformiceChargeur.swf" wmode="direct" menu="true" quality="high" bgcolor="#6A7495" width="100%" height="100%" name="Transformice" align="middle" swliveconnect="true" allowfullscreen="true" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"-->
+        <embed id="swf2" src="http://www.transformice.com/TransformiceChargeur.swf" wmode="direct" menu="true" quality="high" bgcolor="#6A7495" width="100%" height="100%" name="Transformice" align="middle" swliveconnect="true" allowfullscreen="true" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">
 
     </div>
 
@@ -243,7 +243,8 @@
             document.getElementById("transformice").appendChild(swfobj);
         }
 
-        createSwfObj();
+        // use hardcoded EMBED tag to workaround getting youtube to work. TODO: wtf is happening :?
+        //createSwfObj();
     </script>
 </body>
 
