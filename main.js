@@ -23,7 +23,7 @@ var FILE_BASE = "file://" + __dirname;
 (function() {
     var http = require("http");
     var server = http.createServer(function (req, res) {
-      console.log(req.url)
+      //console.log(req.url)
       fs.readFile(path.join(__dirname, "resources", req.url), (err, contents) => {
             res.setHeader("Content-Type", "text/html");
             res.writeHead(200);
@@ -56,11 +56,13 @@ var loadingWin = {};
         loading_bw.destroy();
     }
 
-    loadingWin.loadURL = function(url) {
+    loadingWin.loadURL = function(url, show = true) {
         win.loadURL(url);
-        win.hide();
-        loading_bw.loadURL(URL_LOADING);
-        loading_bw.show();
+        if (show) {
+            win.hide();
+            loading_bw.loadURL(URL_LOADING);
+            loading_bw.show();
+        }
     }
 
     loadingWin.onReady = function() {
@@ -182,8 +184,7 @@ app.whenReady().then(() => {
             {
               label: 'Reload',
               click: () => {
-                  win.hide();
-                  loadingWin.loadURL("http://localhost:8000/tfm.html");
+                  loadingWin.loadURL("http://localhost:8000/tfm.html", false);
               }
             },
             {
