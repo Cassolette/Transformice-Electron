@@ -69,57 +69,35 @@ var readyHandler = {};
 })();
 
 var win = null;
-var loadingWin = {};
-(function(loadingWin) {
-    var URL_LOADING = FILE_BASE + "/resources/loading.html";
+var loadingHandler = {};
+(function(loadingHandler) {
     var URL_FAILURE = FILE_BASE + "/resources/failure.html";
 
-    var loading_bw = null;
     var errorDesc = null;
 
-    loadingWin.createWindow = function() {
-        loading_bw = new BrowserWindow({
-            width: 400,
-            height: 80,
-            show: false,
-            frame: false
-        });
-    }
-
-    loadingWin.closeWindow = function() {
-        loading_bw.destroy();
-    }
-
-    loadingWin.loadURL = function(url, show = true) {
+    loadingHandler.loadURL = function(url, show = true) {
         win.loadURL(url);
-        if (show) {
-            win.hide();
-            loading_bw.loadURL(URL_LOADING);
-            loading_bw.show();
-        }
     }
 
-    loadingWin.onReady = function() {
-        loading_bw.hide();
+    loadingHandler.onReady = function() {
         win.show();
     }
 
-    loadingWin.onFail = function(errDesc) {
-        if (!loading_bw.isDestroyed() && !win.isDestroyed()) {
-            loading_bw.hide();
+    loadingHandler.onFail = function(errDesc) {
+        if (!win.isDestroyed()) {
             win.loadURL(URL_FAILURE);
             win.show();
         }
         errorDesc = errDesc;
     }
 
-    loadingWin.popErrorDesc = function() {
+    loadingHandler.popErrorDesc = function() {
         var e = errorDesc || "Unknown error";
         errorDesc = null;
         return e;
     }
 
-})(loadingWin);
+})(loadingHandler);
 
 /* Load flash plugin according to platform */
 {
@@ -149,7 +127,7 @@ ipcMain.on("tfm-full-screen", (event, mode) => {
 
 /* Get error from loading */
 ipcMain.on("should-send-error", (event) => {
-    win.webContents.send('set-error', loadingWin.popErrorDesc());
+    win.webContents.send('set-error', loadingHandler.popErrorDesc());
 });
 
 /* Close all apps */
@@ -183,8 +161,6 @@ readyHandler.then((httpUrl) => {
             preload: path.join(__dirname, "preload.js")
         }
     });
-
-    loadingWin.createWindow();
 
     /* Build the menu */
     const menu = Menu.buildFromTemplate([
@@ -223,7 +199,7 @@ readyHandler.then((httpUrl) => {
             {
               label: 'Reload',
               click: () => {
-                  loadingWin.loadURL(httpUrl + "/tfm.html", false);
+                  loadingHandler.loadURL(httpUrl + "/tfm.html", false);
               }
             },
             {
@@ -253,14 +229,14 @@ readyHandler.then((httpUrl) => {
 
     win.setMenu(menu);
 
-    loadingWin.loadURL(httpUrl + "/tfm.html");
+    loadingHandler.loadURL(httpUrl + "/tfm.html");
 
     win.webContents.on('did-finish-load', () => {
-        loadingWin.onReady();
+        loadingHandler.onReady();
     });
 
     win.webContents.on('did-fail-load', (event, errCode, errDesc) => {
-        loadingWin.onFail(errDesc);
+        loadingHandler.onFail(errDesc);
     });
 
     /* Open external links in user's preferred browser rather than in Electron */
@@ -272,11 +248,6 @@ readyHandler.then((httpUrl) => {
     /* Don't change the window title */
     win.on('page-title-updated', (event) => {
         event.preventDefault();
-    });
-
-    /* UGLY HACK WARNING: For now we assume that only one window can exist, therefore this means that the app must close */
-    win.on('closed', () => {
-        loadingWin.closeWindow();
     });
 
 });
