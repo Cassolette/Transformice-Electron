@@ -13,7 +13,6 @@ var Youtube = (function Youtube() {
 
 
     function initialiserAPIYoutube() {
-        console.trace(); // TODO: debug
         if (document.getElementById("ytb")) {
             return;
         }

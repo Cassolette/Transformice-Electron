@@ -5,209 +5,14 @@
 </head>
 
 <body>
-    <script>(function(d, s, id) {
-    var langueFB = navigator.language;
-    if (langueFB.length < 3) {
-        langueFB = langueFB+"_"+langueFB.toUpperCase();
-    }
-    langueFB = langueFB.replace("-", "_");
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/"+langueFB+"/sdk.js#xfbml=1&version=v2.0";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+    <!-- tfm-ext.js dependencies -->
+    <script src="https://apis.google.com/js/platform.js?onload=initialiserGAPI" async="" defer="" gapi_processed="true"></script>
+    <script id="tfm-ext" type="text/javascript" src="tfm-ext.js"></script>
 
-<script type="text/javascript" src="https://web-sdk.vidcoin.com/player.min.js"></script>
-<script type="text/javascript">
-    function initialiserVidcoin(idUtilisateur) {
-        var idJeu = '580706219405844';
-        var emplacement = "p2woq0sy168sgwkc0g4owgck0wsksgc";
-        var lecteurVidcoin = VidcoinPlayer({
-            appId: idJeu,
-            placementCodes: [emplacement],
-            userInfo: {
-                userAppId: idUtilisateur
-            }
-        });
-        
-        var disponible = false;
-        
-        lecteurVidcoin.on("adReady", function(data) {
-            console.log("Pub pr\ufffdte pour " + data.placementCode);
-            disponible = true;
-            document.getElementById("swf2")["onVideoPrete"]();
-        });
-        
-        function videoTerminee() {
-            disponible = false;
-            document.getElementById("swf2")["onVideoTerminee"]();
-        }
-        
-        lecteurVidcoin.on('adValidated', function(data) {
-            console.log("Pub validee : " + data.rewardAmount + " " + data.rewardName);
-            videoTerminee();
-        });
-        lecteurVidcoin.on('adCanceled', function(data) {
-            console.log("Pub annulee");
-            videoTerminee();
-        });
-        lecteurVidcoin.on('adError', function(data) {
-            console.log("Pub : erreur");
-            videoTerminee();
-        });
-        lecteurVidcoin.on('adClosed', function(data) {
-            console.log("Pub fermee");
-            videoTerminee();
-        });
-        lecteurVidcoin.on('adNotAvailable', function(data) {
-            console.log("Pub indisponible");
-            videoTerminee();
-        });
-        
-        window.videoDisponible = function() {
-            return disponible;
-        }
-        
-        window.lancerVideo = function() {
-            lecteurVidcoin.openAd();
-        }
-    }
-</script>
-
-<script type="text/javascript" src="youtube-tfm.js"></script>
-<script type="text/javascript" src="lib.js"></script>
-
-<script src="https://apis.google.com/js/platform.js?onload=initialiserGAPI" async="" defer="" gapi_processed="true"></script>
-<script type="text/javascript">
-    var gapiInitialise = false;
-
-    function gapiEstInitialise() {
-        return gapiInitialise;
-    }
-
-    function initialiserGAPI() {
-        var idClient = "815332750938-gb9naef3nm2oe7g9k4idr68gc0jbm3gl.apps.googleusercontent.com";
-
-        gapi.load('auth2', function() {
-            gapi.auth2.init({
-                client_id: idClient,
-            }).then(function() {
-                gapiInitialise = true;
-                var onInitialisationGAPITerminee = document.getElementById('swf2')['onInitialisationGAPITerminee'];
-                if (onInitialisationGAPITerminee) {
-                    onInitialisationGAPITerminee();
-                }
-            }, function() {
-                var onErreurInitialisationGAPI = document.getElementById('swf2')['onErreurInitialisationGAPI'];
-                if (onErreurInitialisationGAPI) {
-                    onErreurInitialisationGAPI();
-                }
-            });
-        });
-    }
-
-    function estAuthentifieSurGoogle() {
-        return gapi.auth2.getAuthInstance().isSignedIn.get();
-    }
-
-    function recupTokenConnexionGoogle() {
-        return gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token;
-    }
-
-    function authentifierSurGoogle() {
-        gapi.auth2.getAuthInstance().signIn({
-            prompt: 'select_account'
-        }).then(function() {
-            var token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token;
-            document.getElementById('swf2')['onAuthGoogle'](token);
-        }, function() {
-            document.getElementById('swf2')['onErreurAuthGoogle']();
-        });
-    }
-</script>
-
-<script id="script_auth_facebook" type="text/javascript">
-    var authFBInitialisee = false;
-
-    window.fbAsyncInit = function() {
-        FB.init({
-            appId: '1814909921903510',
-            version: 'v2.12',
-            status: true
-        });
-        authFBInitialisee = true;
-    };
-
-    function authFBEstInitialisee() {
-        return authFBInitialisee;
-    }
-
-    function authentifierSurFB() {
-        FB.login(function(reponse) {
-            if (reponse.authResponse) {
-                document.getElementById('swf2')['onAuthFB'](reponse.authResponse.userID, reponse.authResponse.accessToken);
-            }
-        }, {
-            scope: 'email'
-        });
-    }
-
-    function determinerLocaleFB() {
-        var langueNav = navigator.languages ? navigator.languages.find(function(l) {return l.indexOf("_") >= 1 || l.indexOf("-") >= 1}) || navigator.languages[0] : navigator.language || navigator.userLanguage || "en_US";
-        return langueNav.replace(/^[a-zA-Z0-9]+/, function(langue) {return langue.toLowerCase();}).replace(/[_\-]([a-zA-Z0-9]+)/, function(s, pays) {return "_" + pays.toUpperCase();});
-    }
-
-    (function chargerScriptFB() {
-        var scriptFacebook = document.createElement('script');
-        scriptFacebook.src = "https://connect.facebook.net/" + determinerLocaleFB() + "/sdk.js";
-        document.getElementById("script_auth_facebook").parentNode.appendChild(scriptFacebook);
-    })();
-</script><script src="https://connect.facebook.net/en_GB/sdk.js"></script>
-
-<script type="text/javascript">
-    var langue = navigator.language;
-        if (!langue) {
-                langue = navigator.browserLanguage;
-        }
-        langue = langue.substr(0, 2);
-    
-    function positionMolette(X, Y) {
-    }
-    function activerMolette(OUI, HAUT) {
-    }
-    function recupLangue() {
-        return langue;
-    }
-    function pleinEcran(OUI) {
-        console.log("oui " + OUI)
-        if (OUI) {
-            document.getElementById("transformice").style.position="fixed";
-            document.getElementById("transformice").style.left="0";
-            document.getElementById("transformice").style.top="0";
-            document.getElementById("transformice").style.width="100%";
-            document.getElementById("transformice").style.height="100%";
-            
-            
-            document.getElementById("idPub").style.display="none";
-            document.getElementById("fb-comments").style.display="none";
-            
-        } else {
-            document.getElementById("transformice").style.position="static";
-            document.getElementById("transformice").style.width="800px";
-                        document.getElementById("transformice").style.height="600px";
-        
-                
-            document.getElementById("idPub").style.display="inline";
-            document.getElementById("fb-comments").style.display="inline";
-            
-        }
-    }
-</script>
+    <script type="text/javascript" src="youtube-tfm.js"></script>
+    <script type="text/javascript" src="lib.js"></script>
 
     <div id="transformice" style="width:100%;height:100%;position: fixed; left: 0px; top: 0px;">
-
-        <!--embed id="swf2" src="http://www.transformice.com/TransformiceChargeur.swf" wmode="direct" menu="true" quality="high" bgcolor="#6A7495" width="100%" height="100%" name="Transformice" align="middle" swliveconnect="true" allowfullscreen="true" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"-->
 
     </div>
 
@@ -224,12 +29,15 @@
 
             setAttrs(swfemb, {
                     id: "swf2",
-                    src: "https://www.transformice.com/TransformiceChargeur.swf",
+                    src: "http://www.transformice.com/TransformiceChargeur.swf",
                     type: "application/x-shockwave-flash",
+                    name: "Transformice",
                     width: "100%",
                     height: "100%",
+                    align: "middle",
 
                     /* SWF params */
+                    allowFullscreen: true,
                     allowScriptAccess: "always",
                     swLiveConnect: true,
                     menu: true,
