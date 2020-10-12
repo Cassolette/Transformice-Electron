@@ -207,44 +207,42 @@
 
     <div id="transformice" style="width:100%;height:100%;position: fixed; left: 0px; top: 0px;">
 
-        <embed id="swf2" src="http://www.transformice.com/TransformiceChargeur.swf" wmode="direct" menu="true" quality="high" bgcolor="#6A7495" width="100%" height="100%" name="Transformice" align="middle" swliveconnect="true" allowfullscreen="true" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">
+        <!--embed id="swf2" src="http://www.transformice.com/TransformiceChargeur.swf" wmode="direct" menu="true" quality="high" bgcolor="#6A7495" width="100%" height="100%" name="Transformice" align="middle" swliveconnect="true" allowfullscreen="true" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"-->
 
     </div>
 
     <script type="text/javascript">
-        function addParams(objNode, params) {
-            for (var name in params) {
-                let value = params[name];
-                let paramNode = document.createElement("param");
-                paramNode.setAttribute("name", name);
-                paramNode.setAttribute("value", value);
-                objNode.appendChild(paramNode);
+
+        function setAttrs(node, attrs) {
+            for (var key in attrs) {
+                node.setAttribute(key, attrs[key])
             }
         }
         
-        function createSwfObj() {
-            var swfobj = document.createElement("object");
-            swfobj.setAttribute("id", "swf2");
-            swfobj.setAttribute("type", "application/x-shockwave-flash");
-            swfobj.setAttribute("width", "100%");
-            swfobj.setAttribute("height", "100%");
-            swfobj.setAttribute("align", "middle");
+        function createSwfEmbed() {
+            var swfemb = document.createElement("embed");
 
-            addParams(swfobj, {
-                    movie: "https://www.transformice.com/TransformiceChargeur.swf",
+            setAttrs(swfemb, {
+                    id: "swf2",
+                    src: "https://www.transformice.com/TransformiceChargeur.swf",
+                    type: "application/x-shockwave-flash",
+                    width: "100%",
+                    height: "100%",
+
+                    /* SWF params */
                     allowScriptAccess: "always",
                     swLiveConnect: true,
                     menu: true,
                     quality: "high",
                     bgcolor: "#6A7495",
-                    wmode: "direct"
+                    wmode: "direct",
+                    //salign: "l",
                 });
 
-            document.getElementById("transformice").appendChild(swfobj);
+            document.getElementById("transformice").appendChild(swfemb);
         }
 
-        // use hardcoded EMBED tag to workaround getting youtube to work. TODO: wtf is happening :?
-        //createSwfObj();
+        createSwfEmbed();
     </script>
 </body>
 
