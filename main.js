@@ -13,14 +13,43 @@ var fs = require("fs");
 
 var FILE_BASE = "file://" + __dirname;
 
+/* Fire a combined ready event when both app and server are ready */
+var readyHandler = {};
+(function(readyHandler) {
+    var http_ready = false;
+    var app_ready = false;
+    var callback = null;
+    var http_url = "";
+
+    function fire() {
+        if (http_ready && app_ready && callback)
+            callback(http_url);
+    }
+
+    readyHandler.httpServerReady = function(httpUrl) {
+        http_ready = true;
+        http_url = httpUrl;
+        fire();
+    }
+
+    readyHandler.appReady = function() {
+        app_ready = true;
+        fire();
+    }
+
+    readyHandler.then = function(cb) {
+        if (cb instanceof Function)
+            callback = cb;
+    }
+})(readyHandler);
+
 /*
  * Set up a local HTTP webserver which will respond with contents in /resources directory.
  * This is needed because flash refuses to send ExternalInterface calls when loading the
  * page directly from file://
  *
- * TODO: randomise and choose an available port.
  */
-(function() {
+(async function() {
     var http = require("http");
     var server = http.createServer(function (req, res) {
       //console.log(req.url)
@@ -30,8 +59,13 @@ var FILE_BASE = "file://" + __dirname;
             res.end(contents);
         })
     });
-server.listen(8000);
-console.log("Set up local HTTP server @ http://localhost:8000/");
+    /* Get an available port */
+    const port = await require("get-port")();
+    server.listen(port);
+    console.log("Set up local HTTP server @ http://localhost:" + port);
+
+    /* Signal HTTP server ready */
+    readyHandler.httpServerReady("http://localhost:" + port);
 })();
 
 var win = null;
@@ -120,13 +154,18 @@ ipcMain.on("should-send-error", (event) => {
 
 /* Close all apps */
 app.on('window-all-closed', function() {
-  if (process.platform != 'darwin') {
-    app.quit();
-  }
+    if (process.platform != 'darwin') {
+        app.quit();
+    }
+});
+
+/* Signal app ready */
+app.whenReady().then(() => {
+    readyHandler.appReady();
 });
 
 /* Initialise app */
-app.whenReady().then(() => {
+readyHandler.then((httpUrl) => {
     win = new BrowserWindow({
         width: 800,
         height: 600,
@@ -184,7 +223,7 @@ app.whenReady().then(() => {
             {
               label: 'Reload',
               click: () => {
-                  loadingWin.loadURL("http://localhost:8000/tfm.html", false);
+                  loadingWin.loadURL(httpUrl + "/tfm.html", false);
               }
             },
             {
@@ -214,7 +253,7 @@ app.whenReady().then(() => {
 
     win.setMenu(menu);
 
-    loadingWin.loadURL("http://localhost:8000/tfm.html");
+    loadingWin.loadURL(httpUrl + "/tfm.html");
 
     win.webContents.on('did-finish-load', () => {
         loadingWin.onReady();
