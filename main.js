@@ -130,11 +130,9 @@ ipcMain.on("should-send-error", (event) => {
     win.webContents.send('set-error', loadingHandler.popErrorDesc());
 });
 
-/* Close all apps */
-app.on('window-all-closed', function() {
-    if (process.platform != 'darwin') {
-        app.quit();
-    }
+/* Shutdown before the app quits */
+app.on('will-quit', () => {
+    
 });
 
 /* Signal app ready */
