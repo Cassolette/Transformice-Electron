@@ -122,6 +122,8 @@ var loadingHandler = {};
 ipcMain.on("tfm-full-screen", (event, mode) => {
     if (!mode) {
         win.setFullScreen(false);
+    } else if (mode == 1) {
+        win.maximize();
     }
 });
 
