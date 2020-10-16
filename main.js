@@ -218,7 +218,7 @@ readyHandler.then((httpUrl) => {
             },
             {
               label: 'DevTools',
-              accelerator: 'Ctrl+Shift+I',
+              accelerator: 'CmdOrCtrl+Shift+I',
               click: () => {
                   win.webContents.openDevTools();
               }
