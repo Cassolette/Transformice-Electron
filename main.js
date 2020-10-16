@@ -104,7 +104,7 @@ var loadingHandler = {};
     var pluginName
     switch (process.platform) {
       case 'win32':
-        pluginName = "pepflashplayer64_32_0_0_433.dll";
+        pluginName = "pepflashplayer64_32_0_0_445.dll";
         break
       case 'linux':
         pluginName = "libpepflashplayer64_29_0_0_171.so";
