@@ -102,18 +102,25 @@ var loadingHandler = {};
 
 /* Load flash plugin according to platform */
 {
-    var pluginName
+    let pluginName
+    let iden
     switch (process.platform) {
       case 'win32':
+        iden = "win";
         pluginName = "pepflashplayer64_32_0_0_445.dll";
-        break
+        break;
       case 'linux':
+        iden = "lnx";
         pluginName = "libpepflashplayer64_29_0_0_171.so";
-        break
+        break;
+      case 'darwin':
+        iden = "mac";
+        pluginName = "PepperFlashPlayer.plugin";
+        break;
     }
 
-    console.log(pluginName)
-    app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname, "flash-plugin", pluginName))
+    console.log(pluginName || "No plugin found.")
+    app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname, "flash-plugin-" + iden, pluginName))
     //app.commandLine.appendSwitch("ppapi-flash-version", "26.0.0.151");
 }
 

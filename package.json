@@ -6,10 +6,10 @@
   "scripts": {
     "start": "electron main.js",
     "clean": "node resources/clean.js",
-    "winpkg32": "electron-packager . Transformice --platform win32 --arch ia32 --out dist/ --ignore \"(.git|dist|flash-plugin-others|node_modules/electron.*)\" --icon resources/icon.png --overwrite",
-    "macpkg64": "electron-packager . Transformice --platform darwin --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|node_modules/electron.*)\" --icon resources/icon.png --overwrite",
-    "lnxpkg64": "electron-packager . Transformice --platform linux --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|node_modules/electron.*)\" --icon resources/icon.png --overwrite",
-    "winpkg64": "electron-packager . Transformice --platform win32 --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|node_modules/electron.*)\" --icon resources/icon.png --overwrite",
+    "winpkg32": "electron-packager . Transformice --platform win32 --arch ia32 --out dist/ --ignore \"(.git|dist|flash-plugin-others)\" --icon resources/icon.png --overwrite",
+    "macpkg64": "electron-packager . Transformice --platform darwin --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|flash-plugin-lnx|flash-plugin-win)\" --icon resources/icon.png --overwrite",
+    "lnxpkg64": "electron-packager . Transformice --platform linux --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|flash-plugin-mac|flash-plugin-win)\" --icon resources/icon.png --overwrite",
+    "winpkg64": "electron-packager . Transformice --platform win32 --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|flash-plugin-lnx|flash-plugin-mac)\" --icon resources/icon.png --overwrite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "build": {
