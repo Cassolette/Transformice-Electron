@@ -237,14 +237,12 @@ readyHandler.then((httpUrl) => {
                     defaultId: 1
                   }).then((res) => {
                     if (res.response == 1) {
-                        win.webContents.session.clearStorageData({
-                            storages: ["cachestorage"]
-                        }).then(() => {
+                        win.webContents.session.clearCache().then(() => {
                             dialog.showMessageBox(win, {
                                 type: "info",
                                 title: "Clear Cache",
                                 message: "Successfully cleared cache."
-                            }).then((res) => {});
+                            });
                         });
                     }
                   });
