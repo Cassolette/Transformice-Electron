@@ -13,6 +13,7 @@ var url = require("url");
 var fs = require("fs");
 
 var FILE_BASE = "file://" + __dirname;
+var APP_NAME = "Transformice";
 
 /* Fire a combined ready event when both app and server are ready */
 var readyHandler = {};
@@ -164,7 +165,7 @@ readyHandler.then((httpUrl) => {
         show: false,
         //paintWhenInitiallyHidden: false,
         backgroundColor: "#6A7495",
-        title: "Transformice",
+        title: APP_NAME,
         icon: path.join(__dirname, "resources/icon.png"),
         webPreferences: {
             plugins: true,
@@ -263,7 +264,7 @@ readyHandler.then((httpUrl) => {
               click: () => {
                   dialog.showMessageBox(win, {
                       type: "info",
-                      title: "About " + app.getName(),
+                      title: "About " + APP_NAME,
                       message: "Version: " + app.getVersion()
                   });
               }
