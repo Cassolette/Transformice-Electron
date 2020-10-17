@@ -26,9 +26,11 @@
       "files": ["flash-plugin/win"]
     },
     "mac": {
+      "category": "public.app-category.games",
       "files": ["flash-plugin/mac"]
     },
     "linux": {
+      "category": "Game",
       "files": ["flash-plugin/lnx"]
     },
     "asarUnpack": ["flash-plugin"]
