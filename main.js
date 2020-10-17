@@ -112,7 +112,7 @@ var loadingHandler = {};
         break;
       case 'linux':
         iden = "lnx";
-        pluginName = "libpepflashplayer64_29_0_0_171.so";
+        pluginName = "libpepflashplayer64_32_0_0_445.so";
         break;
       case 'darwin':
         iden = "mac";
