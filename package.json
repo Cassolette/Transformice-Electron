@@ -1,7 +1,7 @@
 {
   "name": "transformice-electron",
   "productName": "Transformice",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "A cross-platform Transformice standalone app running on Electron.",
   "main": "main.js",
   "scripts": {
@@ -23,20 +23,15 @@
       "preload.js"
     ],
     "win": {
-      "files": [
-        "flash-plugin/win"
-      ]
+      "files": ["flash-plugin/win"]
     },
     "mac": {
-      "files": [
-        "flash-plugin/mac"
-      ]
+      "files": ["flash-plugin/mac"]
     },
     "linux": {
-      "files": [
-        "flash-plugin/lnx"
-      ]
-    }
+      "files": ["flash-plugin/lnx"]
+    },
+    "asarUnpack": ["flash-plugin"]
   },
   "repository": {
     "type": "git",

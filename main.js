@@ -120,7 +120,10 @@ var loadingHandler = {};
     }
 
     console.log(pluginName || "No plugin found.")
-    app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname, "flash-plugin", iden, pluginName))
+
+    /* Flash plugin can only be loaded when unpacked. */
+    app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname, "flash-plugin", iden, pluginName)
+                    .replace('app.asar', 'app.asar.unpacked'));
     //app.commandLine.appendSwitch("ppapi-flash-version", "26.0.0.151");
 }
 
