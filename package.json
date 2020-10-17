@@ -6,14 +6,38 @@
   "scripts": {
     "start": "electron main.js",
     "clean": "node resources/clean.js",
-    "winpkg32": "electron-packager . Transformice --platform win32 --arch ia32 --out dist/ --ignore \"(.git|dist|flash-plugin-others)\" --icon resources/icon.png --overwrite",
-    "macpkg64": "electron-packager . Transformice --platform darwin --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|flash-plugin-lnx|flash-plugin-win)\" --icon resources/icon.png --overwrite",
-    "lnxpkg64": "electron-packager . Transformice --platform linux --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|flash-plugin-mac|flash-plugin-win)\" --icon resources/icon.png --overwrite",
-    "winpkg64": "electron-packager . Transformice --platform win32 --arch x64 --out dist/ --ignore \"(.git|dist|flash-plugin-others|flash-plugin-lnx|flash-plugin-mac)\" --icon resources/icon.png --overwrite",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "electron-builder --x64",
+    "buildwin": "electron-builder -w --x64",
+    "buildmac": "electron-builder -m --x64",
+    "buildlnx": "electron-builder -l --x64",
+    "buildall": "electron-builder -wml --x64"
   },
   "build": {
-    "icon": "resources/icon.png"
+    "appId": "com.cngc4e.transformice.electron",
+    "productName": "Transformice",
+    "icon": "resources/icon.png",
+    "asar": false,
+    "files": [
+      "resources",
+      "node_modules",
+      "main.js",
+      "preload.js"
+    ],
+    "win": {
+      "files": [
+        "flash-plugin/win"
+      ]
+    },
+    "mac": {
+      "files": [
+        "flash-plugin/mac"
+      ]
+    },
+    "linux": {
+      "files": [
+        "flash-plugin/lnx"
+      ]
+    }
   },
   "repository": {
     "type": "git",
@@ -30,7 +54,7 @@
   "homepage": "https://github.com/cngc4e/Transformice-Electron#readme",
   "devDependencies": {
     "electron": "^10.1.3",
-    "electron-packager": "^15.1.0"
+    "electron-builder": "^22.9.1"
   },
   "dependencies": {
     "get-port": "^5.1.1"

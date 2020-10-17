@@ -120,7 +120,7 @@ var loadingHandler = {};
     }
 
     console.log(pluginName || "No plugin found.")
-    app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname, "flash-plugin-" + iden, pluginName))
+    app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname, "flash-plugin", iden, pluginName))
     //app.commandLine.appendSwitch("ppapi-flash-version", "26.0.0.151");
 }
 
