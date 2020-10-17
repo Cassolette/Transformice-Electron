@@ -5,7 +5,8 @@ const {
     ipcMain,
     BrowserWindow,
     Menu,
-    MenuItem 
+    MenuItem,
+    dialog
 } = electron;
 var path = require("path");
 var url = require("url");
@@ -214,6 +215,32 @@ readyHandler.then((httpUrl) => {
                   win.unmaximize();
                   win.setFullScreen(false);
                   win.setContentSize(800, 600);
+              }
+            },
+            {
+              label: 'Clear Cache',
+              click: () => {
+                  dialog.showMessageBox(win, {
+                    type: "question",
+                    title: "Clear Cache",
+                    message: "Are you sure you want to clear the cache?",
+                    detail: "This will delete cached images such as profile pictures. This is useful to reload profile pictures that have since changed. Flash player cache is NOT cleared. Please also reload the app for changes to apply.",
+                    buttons: ["Cancel", "Yes"],
+                    cancelId: 0,
+                    defaultId: 1
+                  }).then((res) => {
+                    if (res.response == 1) {
+                        win.webContents.session.clearStorageData({
+                            storages: ["cachestorage"]
+                        }).then(() => {
+                            dialog.showMessageBox(win, {
+                                type: "info",
+                                title: "Clear Cache",
+                                message: "Successfully cleared cache."
+                            }).then((res) => {});
+                        });
+                    }
+                  });
               }
             },
             {
