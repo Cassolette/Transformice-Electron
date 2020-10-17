@@ -23,14 +23,17 @@
       "preload.js"
     ],
     "win": {
+      "target": "nsis",
       "files": ["flash-plugin/win"]
     },
     "mac": {
       "category": "public.app-category.games",
+      "target": "dmg",
       "files": ["flash-plugin/mac"]
     },
     "linux": {
       "category": "Game",
+      "target": "snap",
       "files": ["flash-plugin/lnx"]
     },
     "asarUnpack": ["flash-plugin"]
