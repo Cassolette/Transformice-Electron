@@ -1,10 +1,11 @@
 {
   "name": "transformice-electron",
-  "version": "1.1.4",
+  "productName": "Transformice",
+  "version": "1.1.5",
   "description": "A cross-platform Transformice standalone app running on Electron.",
   "main": "main.js",
   "scripts": {
-    "start": "electron main.js",
+    "start": "electron .",
     "clean": "node resources/clean.js",
     "build": "electron-builder --x64",
     "buildwin": "electron-builder -w --x64",
@@ -14,9 +15,7 @@
   },
   "build": {
     "appId": "com.cngc4e.transformice.electron",
-    "productName": "Transformice",
     "icon": "resources/icon.png",
-    "asar": false,
     "files": [
       "resources",
       "node_modules",

@@ -255,7 +255,17 @@ readyHandler.then((httpUrl) => {
                   win.webContents.openDevTools();
               }
             },
-            ]
+            {
+              label: 'About',
+              click: () => {
+                  dialog.showMessageBox(win, {
+                      type: "info",
+                      title: "About " + app.getName(),
+                      message: "Version: " + app.getVersion()
+                  });
+              }
+            },
+          ]
         }
     ]);
 
