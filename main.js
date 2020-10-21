@@ -1,5 +1,5 @@
 /* Load dependencies */
-var electron = require("electron");
+const electron = require("electron");
 const { 
     app,
     ipcMain,
@@ -8,12 +8,12 @@ const {
     MenuItem,
     dialog
 } = electron;
-var path = require("path");
-var url = require("url");
-var fs = require("fs");
+const path = require("path");
+const url = require("url");
+const fs = require("fs");
 
-var FILE_BASE = "file://" + __dirname;
-var APP_NAME = "Transformice";
+const FILE_BASE = "file://" + __dirname;
+const APP_NAME = "Transformice";
 
 /* Fire a combined ready event when both app and server are ready */
 var readyHandler = {};
@@ -21,16 +21,15 @@ var readyHandler = {};
     var http_ready = false;
     var app_ready = false;
     var callback = null;
-    var http_url = "";
 
     function fire() {
         if (http_ready && app_ready && callback)
-            callback(http_url);
+            callback();
     }
 
-    readyHandler.httpServerReady = function(httpUrl) {
+    readyHandler.httpServerReady = function(http_url) {
+        loadingHandler.setHttpUrl(http_url);
         http_ready = true;
-        http_url = httpUrl;
         fire();
     }
 
@@ -54,8 +53,9 @@ var readyHandler = {};
 (async function() {
     var http = require("http");
     var server = http.createServer(function (req, res) {
-      //console.log(req.url)
-      fs.readFile(path.join(__dirname, "resources", req.url), (err, contents) => {
+      var pathname = url.parse(req.url).pathname;
+      //console.log(pathname)
+      fs.readFile(path.join(__dirname, "resources", pathname), (err, contents) => {
             res.setHeader("Content-Type", "text/html");
             res.writeHead(200);
             res.end(contents);
@@ -73,12 +73,18 @@ var readyHandler = {};
 var win = null;
 var loadingHandler = {};
 (function(loadingHandler) {
-    var URL_FAILURE = FILE_BASE + "/resources/failure.html";
+    const FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
+    const PATH_URL_TRANSFORMICE = "/tfm.html";
 
     var errorDesc = null;
+    var httpUrl = null;
 
-    loadingHandler.loadURL = function(url, show = true) {
+    loadingHandler.loadURL = function(url) {
         win.loadURL(url);
+    }
+
+    loadingHandler.loadTfm = function() {
+        win.loadURL((httpUrl || "") + PATH_URL_TRANSFORMICE + "?align=bl");
     }
 
     loadingHandler.onReady = function() {
@@ -87,7 +93,7 @@ var loadingHandler = {};
 
     loadingHandler.onFail = function(errDesc) {
         if (!win.isDestroyed()) {
-            win.loadURL(URL_FAILURE);
+            win.loadURL(FILE_URL_FAILURE);
             win.show();
         }
         errorDesc = errDesc;
@@ -97,6 +103,10 @@ var loadingHandler = {};
         var e = errorDesc || "Unknown error";
         errorDesc = null;
         return e;
+    }
+
+    loadingHandler.setHttpUrl = function(http_url) {
+        httpUrl = http_url;
     }
 
 })(loadingHandler);
@@ -155,7 +165,8 @@ app.whenReady().then(() => {
 });
 
 /* Initialise app */
-readyHandler.then((httpUrl) => {
+readyHandler.then(() => {
+
     win = new BrowserWindow({
         width: 800,
         height: 600,
@@ -211,7 +222,7 @@ readyHandler.then((httpUrl) => {
             {
               label: 'Reload',
               click: () => {
-                  loadingHandler.loadURL(httpUrl + "/tfm.html", false);
+                  loadingHandler.loadTfm();
               }
             },
             {
@@ -253,6 +264,12 @@ readyHandler.then((httpUrl) => {
               }
             },
             {
+              label: 'Preferences',
+              click: () => {
+                  //preferences.show();
+              }
+            },
+            {
               label: 'DevTools',
               accelerator: 'CmdOrCtrl+Shift+I',
               click: () => {
@@ -275,7 +292,7 @@ readyHandler.then((httpUrl) => {
 
     win.setMenu(menu);
 
-    loadingHandler.loadURL(httpUrl + "/tfm.html");
+    loadingHandler.loadTfm();
 
     win.webContents.on('did-finish-load', () => {
         loadingHandler.onReady();

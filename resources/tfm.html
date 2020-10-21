@@ -44,8 +44,13 @@
                     quality: "high",
                     bgcolor: "#6A7495",
                     wmode: "direct",
-                    //salign: "l",
                 });
+
+            /* Alignment parameter */
+            var thisurl = new URL(window.location.href);
+            if (align = thisurl.searchParams.get("align")) {
+                swfemb.setAttribute("salign", align);
+            }
 
             document.getElementById("transformice").appendChild(swfemb);
         }

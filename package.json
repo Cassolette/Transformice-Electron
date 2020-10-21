@@ -24,19 +24,27 @@
     ],
     "win": {
       "target": "nsis",
-      "files": ["flash-plugin/win"]
+      "files": [
+        "flash-plugin/win"
+      ]
     },
     "mac": {
       "category": "public.app-category.games",
       "target": "dmg",
-      "files": ["flash-plugin/mac"]
+      "files": [
+        "flash-plugin/mac"
+      ]
     },
     "linux": {
       "category": "Game",
       "target": "snap",
-      "files": ["flash-plugin/lnx"]
+      "files": [
+        "flash-plugin/lnx"
+      ]
     },
-    "asarUnpack": ["flash-plugin"]
+    "asarUnpack": [
+      "flash-plugin"
+    ]
   },
   "repository": {
     "type": "git",
