@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style type="text/css">
+        body {
+          margin: 0;
+          font-family: Tahoma, Arial;
+
+          user-select: none;
+        }
+
+        h1 {
+          font-size: 16px;
+          font-weight: normal;
+        }
+
+        p {
+            color: #A9A9A9;
+            font-size: 12px;
+        }
+
+        .align-container {
+          display: flex;
+        }
+
+        .align-btn {
+          width: 100px;
+          height: 60px;
+          border: none;
+          outline: none;
+          text-align: center;
+        }
+
+        .align-btn:hover {
+          background-color: #ebebeb;
+        }
+
+        .align-btn.active {
+          background-color: #D3D3D3;
+          font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Alignment</h1>
+
+    <div class="align-container">
+      <button class="align-btn" id="align-btn-1-1" data-align="1,1">↖</button>
+      <button class="align-btn" id="align-btn-2-1" data-align="2,1">TOP</button>
+      <button class="align-btn" id="align-btn-3-1" data-align="3,1">↗</button>
+     </div>
+    <div class="align-container">
+      <button class="align-btn" id="align-btn-1-2" data-align="1,2">LEFT</button>
+      <button class="align-btn" id="align-btn-2-2" data-align="2,2">⛶</button>
+      <button class="align-btn" id="align-btn-3-2" data-align="3,2">RIGHT</button>
+    </div>
+    <div class="align-container">
+      <button class="align-btn" id="align-btn-1-3" data-align="1,3">↙</button>
+      <button class="align-btn" id="align-btn-2-3" data-align="2,3">BOTTOM</button>
+      <button class="align-btn" id="align-btn-3-3" data-align="3,3">↘</button>
+    </div>
+
+    <p>Reload for changes to apply.</p>
+
+    <script>
+        let active_btn = null;
+
+        let electronSets = window.parent.window.exports.electronSets;
+
+        function setActiveBtn(x, y) {
+            if (active_btn)
+                document.getElementById(active_btn).classList.remove("active");
+
+            active_btn = "align-btn-" + x + "-" + y;
+            document.getElementById(active_btn).classList.add("active");
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            let btns = document.getElementsByClassName("align-btn");
+            for (let i = 0; i < btns.length; i++) {
+                let btn = btns[i];
+                btn.addEventListener("click", () => {
+                    let align = btn.dataset.align;
+                    let spl = align.split(",");
+                    if (spl.length >= 2) { 
+                        setActiveBtn(spl[0], spl[1]);
+                        electronSets.setSync("general.align", align);
+                    }
+                  });
+            }
+
+            let align = electronSets.getSync("general.align") || "2,2";
+            let spl = align.split(",");
+            if (spl.length >= 2) {
+                setActiveBtn(spl[0], spl[1]);
+            } else {
+                console.log("corrupt align prefs : " + align);
+            }
+        });
+
+    </script>
+</body>
+</html>

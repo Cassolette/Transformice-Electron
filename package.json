@@ -64,6 +64,7 @@
     "electron-builder": "^22.9.1"
   },
   "dependencies": {
+    "electron-settings": "^4.0.2",
     "get-port": "^5.1.1"
   }
 }

@@ -11,6 +11,7 @@ const {
 const path = require("path");
 const url = require("url");
 const fs = require("fs");
+const electronSets = require("electron-settings");
 
 const FILE_BASE = "file://" + __dirname;
 const APP_NAME = "Transformice";
@@ -84,7 +85,35 @@ var loadingHandler = {};
     }
 
     loadingHandler.loadTfm = function() {
-        win.loadURL((httpUrl || "") + PATH_URL_TRANSFORMICE + "?align=bl");
+        let align = electronSets.getSync("general.align") || "";
+        let spl = align.split(",");
+        if (spl.length >= 2) {
+            let x = "";
+            let y = "";
+
+            switch (parseInt(spl[0], 10)) {
+              case 1:
+                x = "l";
+                break;
+              case 3:
+                x = "r";
+                break;
+            }
+
+            switch (parseInt(spl[1], 10)) {
+              case 1:
+                y = "t";
+                break;
+              case 3:
+                y = "b";
+                break;
+            }
+
+            align = y + x;
+        } else {
+            console.log("corrupt align prefs : " + align + electronSets.file());
+        }
+        win.loadURL((httpUrl || "") + PATH_URL_TRANSFORMICE + "?align=" + align);
     }
 
     loadingHandler.onReady = function() {
@@ -109,7 +138,50 @@ var loadingHandler = {};
         httpUrl = http_url;
     }
 
+    loadingHandler.getHttpUrl = function() {
+      return httpUrl;
+    }
+
 })(loadingHandler);
+
+var preferences = {};
+(function(preferences) {
+
+  var prefs_win = null;
+  const FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
+
+  preferences.show = function() {
+    if (!win || prefs_win) return;
+
+    prefs_win = new BrowserWindow({
+        width: 680,
+        height: 400,
+        frame: true,  /* show the default window frame (exit buttons, etc.) */
+        useContentSize: true,  /* make width & height relative to the content, not the whole window */
+        autoHideMenuBar: true,
+        title: APP_NAME,
+        icon: path.join(__dirname, "resources", "icon.png"),
+        parent: win,
+        webPreferences: {
+            plugins: true,
+            //sandbox: true,
+            enableRemoteModule: true,
+            preload: path.join(__dirname, "resources", "prefs", "preload_prefs.js")
+        }
+    });
+
+    prefs_win.on("closed", () => {
+      prefs_win = null;
+      win.focus();
+    });
+
+    prefs_win.loadURL(FILE_URL_PREFS);
+  }
+
+  preferences.close = function() {
+    if (!prefs_win) return;
+  }
+})(preferences);
 
 /* Load flash plugin according to platform */
 {
@@ -177,7 +249,7 @@ readyHandler.then(() => {
         //paintWhenInitiallyHidden: false,
         backgroundColor: "#6A7495",
         title: APP_NAME,
-        icon: path.join(__dirname, "resources/icon.png"),
+        icon: path.join(__dirname, "resources", "icon.png"),
         webPreferences: {
             plugins: true,
             sandbox: true,
@@ -266,7 +338,7 @@ readyHandler.then(() => {
             {
               label: 'Preferences',
               click: () => {
-                  //preferences.show();
+                  preferences.show();
               }
             },
             {
