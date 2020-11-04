@@ -117,13 +117,13 @@ var loadingHandler = {};
     }
 
     loadingHandler.onReady = function() {
-        win.show();
+        //win.show();
     }
 
     loadingHandler.onFail = function(errDesc) {
         if (!win.isDestroyed()) {
             win.loadURL(FILE_URL_FAILURE);
-            win.show();
+            //win.show();
         }
         errorDesc = errDesc;
     }
@@ -245,7 +245,7 @@ readyHandler.then(() => {
         frame: true,  /* show the default window frame (exit buttons, etc.) */
         //transparent: true,
         useContentSize: true,  /* make width & height relative to the content, not the whole window */
-        show: false,
+        show: true,  /* show app background instantly until content is loaded */
         //paintWhenInitiallyHidden: false,
         backgroundColor: "#6A7495",
         title: APP_NAME,
