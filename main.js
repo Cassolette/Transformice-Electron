@@ -67,6 +67,11 @@ var readyHandler = {};
     server.listen(port);
     console.log("Set up local HTTP server @ http://localhost:" + port);
 
+    /* Disable TCP delay */
+    server.on("connection", (socket) => {
+        socket.setNoDelay(true);
+    });
+
     /* Signal HTTP server ready */
     readyHandler.httpServerReady("http://localhost:" + port);
 })();
