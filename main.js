@@ -1,6 +1,6 @@
 /* Load dependencies */
 const electron = require("electron");
-const { 
+const {
     app,
     ipcMain,
     BrowserWindow,
@@ -64,22 +64,54 @@ function initApp() {
     })(readyHandler);
 
     /*
-    * Set up a local HTTP webserver which will respond with contents in /resources directory.
-    * This is needed because flash refuses to send ExternalInterface calls when loading the
-    * page directly from file://
-    *
-    */
+     * Set up a local HTTP webserver which will respond with contents in /resources directory.
+     * This is needed because flash refuses to send ExternalInterface calls when loading the
+     * page directly from file://
+     *
+     */
     (async function() {
         var http = require("http");
-        var server = http.createServer(function (req, res) {
-        var pathname = url.parse(req.url).pathname;
-        //console.log(pathname)
-        fs.readFile(path.join(__dirname, "resources", pathname), (err, contents) => {
-                res.setHeader("Content-Type", "text/html");
-                res.writeHead(200);
-                res.end(contents);
-            })
+        var server = http.createServer((req, res) => {
+            var urlobj = url.parse(req.url)
+            var pathname = urlobj.pathname;
+            var query = urlobj.query;
+            //console.log(pathname + (query ? "?" + query : ""))
+
+            res.setTimeout(5000);
+
+            // HACK to load DeadMaze by channeling the SWF binary buffers from the actual site
+            if (pathname == "/deadmeat.swf") {
+                http.get("http://deadmaze.com/alpha/deadmeat.swf?" + query, (resp) => {
+                    let rawHeaders = resp.rawHeaders;
+                    for (let i = 0; i < rawHeaders.length; i += 2) {
+                        res.setHeader(rawHeaders[i], rawHeaders[i + 1]);
+                    }
+                    //console.log(res.getHeaders())
+
+                    resp.on("data", (chunk) => {
+                        res.write(chunk);
+                    });
+                    resp.on("end", () => {
+                        res.end();
+                    });
+                }).on("error", (err) => {
+                    res.writeHead(500);
+                    res.end();
+                });
+            } else {
+                fs.readFile(path.join(__dirname, "resources", pathname), (err, contents) => {
+                    if (err) {
+                        res.writeHead(404);
+                        res.end();
+                    } else {
+                        res.setHeader("Content-Type", "text/html");
+                        res.writeHead(200);
+                        res.end(contents);
+                    }
+                });
+            }
         });
+
         /* Get an available port */
         const port = await require("get-port")();
         server.listen(port);
@@ -99,31 +131,31 @@ function initApp() {
         let pluginName
         let iden
         switch (process.platform) {
-        case 'win32':
-            iden = "win";
-            pluginName = "pepflashplayer64_32_0_0_445.dll";
-            break;
-        case 'linux':
-            iden = "lnx";
-            pluginName = "libpepflashplayer64_32_0_0_445.so";
-            break;
-        case 'darwin':
-            iden = "mac";
-            pluginName = "PepperFlashPlayer.plugin";
-            break;
+            case 'win32':
+                iden = "win";
+                pluginName = "pepflashplayer64_32_0_0_445.dll";
+                break;
+            case 'linux':
+                iden = "lnx";
+                pluginName = "libpepflashplayer64_32_0_0_445.so";
+                break;
+            case 'darwin':
+                iden = "mac";
+                pluginName = "PepperFlashPlayer.plugin";
+                break;
         }
 
         console.log(pluginName || "No plugin found.")
 
         /* Flash plugin can only be loaded when unpacked. */
         app.commandLine.appendSwitch('ppapi-flash-path', path.join(__dirname, "flash-plugin", iden, pluginName)
-                        .replace('app.asar', 'app.asar.unpacked'));
+            .replace('app.asar', 'app.asar.unpacked'));
         //app.commandLine.appendSwitch("ppapi-flash-version", "26.0.0.151");
     }
 
     app.on('second-instance', (event, cmdLine, workingDir) => {
         /* Open a new window */
-        (new Window801(Window801.GAME_TFM)).load();
+        (new Window801(Window801.GAME_TRANSFORMICE)).load();
     });
 
     /* Signal app ready */
@@ -136,37 +168,17 @@ function initApp() {
         const FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
         const FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
         const PATH_URL_TRANSFORMICE = "/tfm.html";
+        const PATH_URL_DEADMAZE = "/deadmaze.html";
 
-        var windows = {};
-        var windowsByWebContents = {};
-
-        Window801 = function(gameType) {
-            /* Initialize BrowserWindow */
-            let bwin = new BrowserWindow({
-                width: 800,
-                height: 600,
-                frame: true,  /* show the default window frame (exit buttons, etc.) */
-                //transparent: true,
-                useContentSize: true,  /* make width & height relative to the content, not the whole window */
-                show: true,  /* show app background instantly until content is loaded */
-                //paintWhenInitiallyHidden: false,
-                backgroundColor: "#6A7495",
-                title: APP_NAME,
-                icon: path.join(__dirname, "resources", "icon.png"),
-                webPreferences: {
-                    plugins: true,
-                    sandbox: true,
-                    preload: path.join(__dirname, "preload.js")
-                }
-            });
-
-            /* Build the menu */
-            const menu = Menu.buildFromTemplate([
+        /** Window801 local private functions **/
+        /* Build the menu, call with context from Window801 instance */
+        function buildMenu(bwin) {
+            return Menu.buildFromTemplate([
             {
                 label: 'Zoom In',
                 //accelerator: 'PageUp',
                 click: () => {
-                    var webContents = bwin.webContents
+                    var webContents = bwin.webContents;
                     /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 + 10) / 100;
                     webContents.setZoomFactor(zoomFactor);
@@ -176,11 +188,11 @@ function initApp() {
                 label: 'Zoom Out',
                 //accelerator: 'PageDown',
                 click: () => {
-                    var webContents = bwin.webContents
+                    var webContents = bwin.webContents;
                     /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 - 10) / 100;
                     if (zoomFactor > 0) webContents.setZoomFactor(zoomFactor);
-                    }
+                }
             },
             {
                 label: 'Reset Zoom',
@@ -194,77 +206,123 @@ function initApp() {
             {
                 label: 'More',
                 submenu: [
-                    {
-                        label: 'Reload',
-                        click: () => {
-                            this.load();
-                        }
-                    },
-                    {
-                        label: 'Fullscreen',
-                        click: () => {
-                            bwin.setFullScreen(!bwin.isFullScreen());
-                        }
-                    },
-                    {
-                        label: 'Fit Window',
-                        click: () => {
-                            bwin.unmaximize();
-                            bwin.setFullScreen(false);
-                            bwin.setContentSize(800, 600);
-                        }
-                    },
-                    {
-                        label: 'Clear Cache',
-                        click: () => {
-                            dialog.showMessageBox(bwin, {
-                                type: "question",
-                                title: "Clear Cache",
-                                message: "Are you sure you want to clear the cache?",
-                                detail: "This will delete cached images such as profile pictures. This is useful to reload profile pictures that have since changed. Flash player cache is NOT cleared. Please also reload the app for changes to apply.",
-                                buttons: ["Cancel", "Yes"],
-                                cancelId: 0,
-                                defaultId: 1
-                            }).then((res) => {
-                                if (res.response == 1) {
-                                    bwin.webContents.session.clearCache().then(() => {
-                                        dialog.showMessageBox(bwin, {
-                                            type: "info",
-                                            title: "Clear Cache",
-                                            message: "Successfully cleared cache."
-                                        });
+                {
+                    label: 'Reload',
+                    click: () => {
+                        this.load();
+                    }
+                },
+                {
+                    label: 'Fullscreen',
+                    click: () => {
+                        bwin.setFullScreen(!bwin.isFullScreen());
+                    }
+                },
+                {
+                    label: 'Fit Window',
+                    click: () => {
+                        bwin.unmaximize();
+                        bwin.setFullScreen(false);
+                        bwin.setContentSize(800, 600);
+                    }
+                },
+                {
+                    label: 'Clear Cache',
+                    click: () => {
+                        dialog.showMessageBox(bwin, {
+                            type: "question",
+                            title: "Clear Cache",
+                            message: "Are you sure you want to clear the cache?",
+                            detail: "This will delete cached images such as profile pictures. This is useful to reload profile pictures that have since changed. Flash player cache is NOT cleared. Please also reload the app for changes to apply.",
+                            buttons: ["Cancel", "Yes"],
+                            cancelId: 0,
+                            defaultId: 1
+                        }).then((res) => {
+                            if (res.response == 1) {
+                                bwin.webContents.session.clearCache().then(() => {
+                                    dialog.showMessageBox(bwin, {
+                                        type: "info",
+                                        title: "Clear Cache",
+                                        message: "Successfully cleared cache."
                                     });
-                                }
-                            });
-                        }
-                    },
-                    {
-                        label: 'Preferences',
-                        click: () => {
-                            this.showPreferences();
-                        }
-                    },
-                    {
-                        label: 'DevTools',
-                        accelerator: 'CmdOrCtrl+Shift+I',
-                        click: () => {
-                            bwin.webContents.openDevTools();
-                        }
-                    },
-                    {
-                        label: 'About',
-                        click: () => {
-                            dialog.showMessageBox(bwin, {
-                                type: "info",
-                                title: "About " + APP_NAME,
-                                message: "Version: " + app.getVersion()
-                            });
-                        }
-                    },
+                                });
+                            }
+                        });
+                    }
+                },
+                {
+                    label: 'Preferences',
+                    click: () => {
+                        this.showPreferences();
+                    }
+                },
+                {
+                    label: 'DevTools',
+                    accelerator: 'CmdOrCtrl+Shift+I',
+                    click: () => {
+                        bwin.webContents.openDevTools();
+                    }
+                },
+                {
+                    label: 'About',
+                    click: () => {
+                        dialog.showMessageBox(bwin, {
+                            type: "info",
+                            title: "About " + APP_NAME,
+                            message: "Version: " + app.getVersion()
+                        });
+                    }
+                },
+                ]
+            },
+            {
+                label: 'Other Games',
+                submenu: [
+                {
+                    label: 'Transformice',
+                    click: () => {
+                        (new Window801(Window801.GAME_TRANSFORMICE)).load();
+                    }
+                },
+                {
+                    label: 'DeadMaze',
+                    click: () => {
+                        (new Window801(Window801.GAME_DEADMAZE)).load();
+                    }
+                },
                 ]
             }]);
+        }
 
-            bwin.setMenu(menu);
+        /** Window801 local private static vars **/
+        var windows = {};
+        var windowsByWebContents = {};
+
+        /* Window801 constructor */
+        Window801 = function(gameType) {
+            /* Initialize BrowserWindow */
+            let bwin = new BrowserWindow({
+                width: 800,
+                height: 600,
+                frame: true,
+                /* show the default window frame (exit buttons, etc.) */
+                //transparent: true,
+                useContentSize: true,
+                /* make width & height relative to the content, not the whole window */
+                show: true,
+                /* show app background instantly until content is loaded */
+                //paintWhenInitiallyHidden: false,
+                backgroundColor: "#6A7495",
+                title: APP_NAME,
+                icon: path.join(__dirname, "resources", "icon.png"),
+                webPreferences: {
+                    plugins: true,
+                    sandbox: true,
+                    preload: path.join(__dirname, "preload.js")
+                }
+            });
+
+            bwin.setMenu(buildMenu.call(this, bwin));
 
             bwin.webContents.on('did-finish-load', () => {
                 this.onReady();
@@ -286,7 +344,7 @@ function initApp() {
             });
 
             let wid = bwin.id;
-            let wcid = bwin.webContents.id
+            let wcid = bwin.webContents.id;
             /* Delete reference on close */
             bwin.on('closed', (event) => {
                 windows[wid] = null;
@@ -303,8 +361,9 @@ function initApp() {
             windowsByWebContents[bwin.webContents.id] = this;
         }
 
+        /** Window801 public **/
         Window801.prototype.load = function() {
-            if (this.gameType == Window801.GAME_TFM) {
+            if (this.gameType == Window801.GAME_TRANSFORMICE) {
                 /* Read alignment prefs */
                 let align = electronSets.getSync("general.align") || "";
                 let spl = align.split(",");
@@ -313,21 +372,21 @@ function initApp() {
                     let y = "";
 
                     switch (parseInt(spl[0], 10)) {
-                    case 1:
-                        x = "l";
-                        break;
-                    case 3:
-                        x = "r";
-                        break;
+                        case 1:
+                            x = "l";
+                            break;
+                        case 3:
+                            x = "r";
+                            break;
                     }
 
                     switch (parseInt(spl[1], 10)) {
-                    case 1:
-                        y = "t";
-                        break;
-                    case 3:
-                        y = "b";
-                        break;
+                        case 1:
+                            y = "t";
+                            break;
+                        case 3:
+                            y = "b";
+                            break;
                     }
 
                     align = y + x;
@@ -337,6 +396,11 @@ function initApp() {
 
                 /* Load it */
                 this.browserWindow.loadURL((httpUrl || "") + PATH_URL_TRANSFORMICE + "?align=" + align);
+            } else if (this.gameType == Window801.GAME_DEADMAZE) {
+                this.browserWindow.setTitle("DeadMaze");
+                this.browserWindow.setBackgroundColor("#000000");
+                this.browserWindow.maximize();
+                this.browserWindow.loadURL((httpUrl || "") + PATH_URL_DEADMAZE);
             }
         }
 
@@ -400,7 +464,11 @@ function initApp() {
         }
 
         /* Game enums */
-        Window801.GAME_TFM = 1;
+        Window801.GAME_TRANSFORMICE = 1;
+        Window801.GAME_DEADMAZE = 2;
+        Window801.GAME_BOUBOUM = 3;
+        Window801.GAME_FORTORESSE = 4;
+        Window801.GAME_NEKODANCER = 5;
 
     })();
 
@@ -428,6 +496,6 @@ function initApp() {
 
     /* Initialise app */
     readyHandler.then(() => {
-        (new Window801(Window801.GAME_TFM)).load();
+        (new Window801(Window801.GAME_TRANSFORMICE)).load();
     });
 }

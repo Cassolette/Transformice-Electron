@@ -1,0 +1,54 @@
+<html>
+
+<head>
+    <title>DeadMaze</title>
+</head>
+
+<body>
+    <!-- tfm-ext.js dependencies -->
+    <script src="https://apis.google.com/js/platform.js?onload=initialiserGAPI" async="" defer="" gapi_processed="true"></script>
+    <script id="a801-ext" type="text/javascript" src="deadmaze-ext.js"></script>
+
+    <div id="deadmaze" style="width:100%;height:100%;position: fixed; left: 0px; top: 0px;">
+
+    </div>
+
+    <script type="text/javascript">
+
+        function setAttrs(node, attrs) {
+            for (var key in attrs) {
+                node.setAttribute(key, attrs[key])
+            }
+        }
+    
+        function createSwfEmbed() {
+            var swfemb = document.createElement("embed");
+
+            setAttrs(swfemb, {
+                    id: "swf2",
+                    src: "http://deadmaze.com/alpha/chargeur-deadmeat.swf",
+                    type: "application/x-shockwave-flash",
+                    name: "DeadMaze",
+                    width: "100%",
+                    height: "100%",
+                    align: "middle",
+
+                    /* SWF params */
+                    allowFullscreen: true,
+                    allowScriptAccess: "always",
+                    swLiveConnect: true,
+                    menu: true,
+                    quality: "high",
+                    bgcolor: "#000000",
+                    wmode: "direct",
+                    scale: "noscale",
+                });
+
+            document.getElementById("deadmaze").appendChild(swfemb);
+        }
+
+        createSwfEmbed();
+    </script>
+</body>
+
+</html>
