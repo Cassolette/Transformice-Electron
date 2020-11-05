@@ -138,10 +138,11 @@ function initApp() {
         const PATH_URL_TRANSFORMICE = "/tfm.html";
 
         var windows = {};
+        var windowsByWebContents = {};
 
         Window801 = function(gameType) {
             /* Initialize BrowserWindow */
-            let win = new BrowserWindow({
+            let bwin = new BrowserWindow({
                 width: 800,
                 height: 600,
                 frame: true,  /* show the default window frame (exit buttons, etc.) */
@@ -165,7 +166,7 @@ function initApp() {
                 label: 'Zoom In',
                 //accelerator: 'PageUp',
                 click: () => {
-                    var webContents = win.webContents
+                    var webContents = bwin.webContents
                     /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 + 10) / 100;
                     webContents.setZoomFactor(zoomFactor);
@@ -175,7 +176,7 @@ function initApp() {
                 label: 'Zoom Out',
                 //accelerator: 'PageDown',
                 click: () => {
-                    var webContents = win.webContents
+                    var webContents = bwin.webContents
                     /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 - 10) / 100;
                     if (zoomFactor > 0) webContents.setZoomFactor(zoomFactor);
@@ -185,7 +186,7 @@ function initApp() {
                 label: 'Reset Zoom',
                 //accelerator: 'PageDown',
                 click: () => {
-                    var webContents = win.webContents
+                    var webContents = bwin.webContents
                     var currentZoomFactor = webContents.getZoomFactor();
                     webContents.setZoomFactor(1);
                 }
@@ -202,21 +203,21 @@ function initApp() {
                     {
                         label: 'Fullscreen',
                         click: () => {
-                            win.setFullScreen(!win.isFullScreen());
+                            bwin.setFullScreen(!bwin.isFullScreen());
                         }
                     },
                     {
                         label: 'Fit Window',
                         click: () => {
-                            win.unmaximize();
-                            win.setFullScreen(false);
-                            win.setContentSize(800, 600);
+                            bwin.unmaximize();
+                            bwin.setFullScreen(false);
+                            bwin.setContentSize(800, 600);
                         }
                     },
                     {
                         label: 'Clear Cache',
                         click: () => {
-                            dialog.showMessageBox(win, {
+                            dialog.showMessageBox(bwin, {
                                 type: "question",
                                 title: "Clear Cache",
                                 message: "Are you sure you want to clear the cache?",
@@ -226,8 +227,8 @@ function initApp() {
                                 defaultId: 1
                             }).then((res) => {
                                 if (res.response == 1) {
-                                    win.webContents.session.clearCache().then(() => {
-                                        dialog.showMessageBox(win, {
+                                    bwin.webContents.session.clearCache().then(() => {
+                                        dialog.showMessageBox(bwin, {
                                             type: "info",
                                             title: "Clear Cache",
                                             message: "Successfully cleared cache."
@@ -247,13 +248,13 @@ function initApp() {
                         label: 'DevTools',
                         accelerator: 'CmdOrCtrl+Shift+I',
                         click: () => {
-                            win.webContents.openDevTools();
+                            bwin.webContents.openDevTools();
                         }
                     },
                     {
                         label: 'About',
                         click: () => {
-                            dialog.showMessageBox(win, {
+                            dialog.showMessageBox(bwin, {
                                 type: "info",
                                 title: "About " + APP_NAME,
                                 message: "Version: " + app.getVersion()
@@ -263,42 +264,43 @@ function initApp() {
                 ]
             }]);
 
-            win.setMenu(menu);
+            bwin.setMenu(menu);
 
-            win.webContents.on('did-finish-load', () => {
+            bwin.webContents.on('did-finish-load', () => {
                 this.onReady();
             });
 
-            win.webContents.on('did-fail-load', (event, errCode, errDesc) => {
+            bwin.webContents.on('did-fail-load', (event, errCode, errDesc) => {
                 this.onFail(errDesc);
             });
 
             /* Open external links in user's preferred browser rather than in Electron */
-            win.webContents.on('new-window', (event, url) => {
+            bwin.webContents.on('new-window', (event, url) => {
                 event.preventDefault();
                 electron.shell.openExternal(url);
             });
 
             /* Don't change the window title */
-            win.on('page-title-updated', (event) => {
+            bwin.on('page-title-updated', (event) => {
                 event.preventDefault();
             });
 
-            let wid = win.id;
+            let wid = bwin.id;
+            let wcid = bwin.webContents.id
             /* Delete reference on close */
-            win.on('closed', (event) => {
+            bwin.on('closed', (event) => {
                 windows[wid] = null;
+                windowsByWebContents[wcid] = null;
             });
 
-            this.browserWindow = win;
-            this.errorDesc = null;
-
-            this.id = win.id;
-            this.webContentsId = win.webContents.id;
+            this.browserWindow = bwin;
+            this.id = bwin.id;
             this.gameType = gameType;
             this.prefsWin = null;
+            this.errorDesc = null;
 
             windows[this.id] = this;
+            windowsByWebContents[bwin.webContents.id] = this;
         }
 
         Window801.prototype.load = function() {
@@ -389,11 +391,12 @@ function initApp() {
             this.prefsWin.loadURL(FILE_URL_PREFS);
         }
 
+        Window801.getWindowById = function(id) {
+            return windows[id];
+        }
+
         Window801.getWindowByWebContentsId = function(id) {
-            for (var bid in windows) {
-                if (windows[bid].webContentsId == id) return windows[bid];
-            };
-            return null;
+            return windowsByWebContents[id];
         }
 
         /* Game enums */
