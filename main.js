@@ -94,45 +94,6 @@ function initApp() {
         readyHandler.httpServerReady("http://localhost:" + port);
     })();
 
-    var preferences = {};
-    (function(preferences) {
-
-    var prefs_win = null;
-    const FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
-
-    preferences.show = function() {
-        if (!win || prefs_win) return;
-
-        prefs_win = new BrowserWindow({
-            width: 680,
-            height: 400,
-            frame: true,  /* show the default window frame (exit buttons, etc.) */
-            useContentSize: true,  /* make width & height relative to the content, not the whole window */
-            autoHideMenuBar: true,
-            title: APP_NAME,
-            icon: path.join(__dirname, "resources", "icon.png"),
-            parent: win,
-            webPreferences: {
-                plugins: true,
-                //sandbox: true,
-                enableRemoteModule: true,
-                preload: path.join(__dirname, "resources", "prefs", "preload_prefs.js")
-            }
-        });
-
-        prefs_win.on("closed", () => {
-            prefs_win = null;
-            win.focus();
-        });
-
-        prefs_win.loadURL(FILE_URL_PREFS);
-    }
-
-    preferences.close = function() {
-        if (!prefs_win) return;
-    }
-    })(preferences);
-
     /* Load flash plugin according to platform */
     {
         let pluginName
@@ -173,6 +134,7 @@ function initApp() {
     var Window801 = {};
     (function() {
         const FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
+        const FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
         const PATH_URL_TRANSFORMICE = "/tfm.html";
 
         var windows = {};
@@ -278,7 +240,7 @@ function initApp() {
                     {
                         label: 'Preferences',
                         click: () => {
-                            preferences.show();
+                            this.showPreferences();
                         }
                     },
                     {
@@ -334,6 +296,7 @@ function initApp() {
             this.id = win.id;
             this.webContentsId = win.webContents.id;
             this.gameType = gameType;
+            this.prefsWin = null;
 
             windows[this.id] = this;
         }
@@ -392,6 +355,38 @@ function initApp() {
             var e = this.errorDesc || "Unknown error";
             errorDesc = null;
             return e;
+        }
+
+        Window801.prototype.showPreferences = function() {
+            if (this.prefsWin) {
+                /* already open - focus and bail out */
+                this.prefsWin.focus();
+                return;
+            }
+
+            this.prefsWin = new BrowserWindow({
+                width: 680,
+                height: 400,
+                frame: true,  /* show the default window frame (exit buttons, etc.) */
+                useContentSize: true,  /* make width & height relative to the content, not the whole window */
+                autoHideMenuBar: true,
+                title: APP_NAME,
+                icon: path.join(__dirname, "resources", "icon.png"),
+                parent: this.browserWindow,
+                webPreferences: {
+                    plugins: true,
+                    //sandbox: true,
+                    enableRemoteModule: true,
+                    preload: path.join(__dirname, "resources", "prefs", "preload_prefs.js")
+                }
+            });
+
+            this.prefsWin.on("closed", () => {
+                this.prefsWin = null;
+                this.browserWindow.focus();
+            });
+
+            this.prefsWin.loadURL(FILE_URL_PREFS);
         }
 
         Window801.getWindowByWebContentsId = function(id) {
