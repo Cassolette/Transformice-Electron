@@ -419,7 +419,7 @@ function initApp() {
     ipcMain.on("should-send-error", (event) => {
         let win801 = Window801.getWindowByWebContentsId(event.sender.id);
         if (win801) {
-            win.webContents.send('set-error', win801.popErrorDesc());
+            event.reply('set-error', win801.popErrorDesc());
         }
     });
 
