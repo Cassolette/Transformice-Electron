@@ -32,6 +32,10 @@
       "category": "public.app-category.games",
       "target": "dmg",
       "identity": false,
+      "publish": {
+        "provider": "github",
+        "releaseType": "release"
+      },
       "files": [
         "flash-plugin/mac"
       ]
