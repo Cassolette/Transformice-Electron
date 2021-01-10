@@ -26,7 +26,8 @@ var httpUrl = null;
          * Client tried to open a second instance - close the app and signal
          * 'second-instance' to the running instance.
          */
-        app.quit();
+        //app.quit();
+        initApp(); // TODO: tmp workaround for user - issue #3: Separating of Flash processes per Window
     } else {
         initApp();
     }
@@ -155,7 +156,8 @@ function initApp() {
 
     app.on('second-instance', (event, cmdLine, workingDir) => {
         /* Open a new window */
-        (new Window801(Window801.GAME_TRANSFORMICE)).load();
+        //(new Window801(Window801.GAME_TRANSFORMICE)).load();
+        // TODO: tmp workaround for user - issue #3: Separating of Flash processes per Window
     });
 
     /* Signal app ready */
@@ -318,6 +320,7 @@ function initApp() {
                 webPreferences: {
                     plugins: true,
                     sandbox: true,
+                    contextIsolation: false,
                     preload: path.join(__dirname, "preload.js")
                 }
             });
