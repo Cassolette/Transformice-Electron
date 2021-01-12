@@ -134,11 +134,11 @@ function initApp() {
         switch (process.platform) {
             case 'win32':
                 iden = "win";
-                pluginName = "pepflashplayer64_32_0_0_363.dll";
+                pluginName = "pepflashplayer64_32_0_0_371.dll";
                 break;
             case 'linux':
                 iden = "lnx";
-                pluginName = "libpepflashplayer64_32_0_0_363.so";
+                pluginName = "libpepflashplayer64_32_0_0_371.so";
                 break;
             case 'darwin':
                 iden = "mac";
