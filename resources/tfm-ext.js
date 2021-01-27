@@ -99,9 +99,14 @@ function activerMolette(OUI, HAUT) {
 function recupLangue() {
     return langue;
 }
-function navigateur() {
-    return "chargeur-electron";
-}
 function pleinEcran(OUI) {
     ipc.send("tfm-full-screen", OUI);
+}
+
+var handshake_navigateur_done = false;
+function navigateur() {
+    // Only send the navigator string the first time, which should be the handshake
+    if (handshake_navigateur_done) return;
+    handshake_navigateur_done = true;
+    return "chargeur-electron";
 }
