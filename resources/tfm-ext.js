@@ -103,6 +103,10 @@ function pleinEcran(OUI) {
     ipc.send("tfm-full-screen", OUI);
 }
 
+function defActiviteDiscord(JOUEUR, SALON, IMAGE1, IMAGE2) {
+    console.log("joueur:"+JOUEUR, "salon:"+SALON, "img1: "+IMAGE1, "img2"+IMAGE2);
+}
+
 var handshake_navigateur_done = false;
 function navigateur() {
     // Only send the navigator string the first time, which should be the handshake
