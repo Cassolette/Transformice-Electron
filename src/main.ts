@@ -1,11 +1,13 @@
 import { app } from "electron";
 import { TeGames } from "./te-enums";
 import { WindowTransformice } from "./WindowTransformice";
-import { startHttpServer } from "./te-server";
-import * as path from "path";
+import { startHttpServer, testHttpServer } from "./te-server";
 import { WindowDeadMaze } from "./WindowDeadMaze";
+import * as path from "path";
+import * as fs from "fs";
 
 const BASE_DIR = path.join(__dirname, "..");
+const SERVER_URL_FILE = path.join(app.getPath("userData"), "server.te");
 
 /* Fire a combined ready event when both app and server are ready */
 module readyHandler {
@@ -76,23 +78,58 @@ function createWindow(gameType: TeGames, httpUrl: string) {
     }
 }
 
-/* Start things up */
-addFlashPlugin();
-app.whenReady().then(readyHandler.appReady);
-startHttpServer().then(readyHandler.httpServerReady);
+async function startServer(instance_lock: Boolean) {
+    let stored_url = null;
+    console.log("first", SERVER_URL_FILE)
+    if (!instance_lock) {
+        // Secondary instance: Try to read for any existing server URL stored
+        try {
+            let server_url = fs.readFileSync(SERVER_URL_FILE).toString();
 
-/* All ready! */
-readyHandler.afterReady((httpUrl) => {
-    let gameId: TeGames = TeGames.TRANSFORMICE;
-
-    if (process.argv[2]) {
-        let id = +process.argv[2];
-        if (Object.values(TeGames).includes(id)) {
-            // The ID is valid and exists in the enums
-            gameId = id;
-        }
+            // Test if this server responds
+            if (await testHttpServer(server_url)) {
+                stored_url = server_url;
+            }
+        } catch (err) { }
     }
-    createWindow(gameId, httpUrl).load();
-});
 
-//console.log(process.argv);
+    if (stored_url) {
+        readyHandler.httpServerReady(stored_url);
+    } else {
+        startHttpServer().then((httpUrl) => {
+            // Store the current HTTP url
+            fs.writeFile(SERVER_URL_FILE, httpUrl, (err) => {
+                if (err) {
+                    console.error("Failed to save TE server URL.");
+                }
+            });
+            readyHandler.httpServerReady(httpUrl);
+        });
+    }
+}
+
+/* Start things up */
+(async function () {
+    var instance_lock = app.requestSingleInstanceLock();
+
+    addFlashPlugin();
+    app.whenReady().then(readyHandler.appReady);
+    await startServer(instance_lock);
+
+    /* All ready! */
+    readyHandler.afterReady((httpUrl) => {
+        let gameId: TeGames = TeGames.TRANSFORMICE;
+
+        if (process.argv[2]) {
+            let id = +process.argv[2];
+            if (Object.values(TeGames).includes(id)) {
+                // The ID is valid and exists in the enums
+                gameId = id;
+            }
+        }
+
+        createWindow(gameId, httpUrl).load();
+    });
+
+    //console.log(process.argv);
+})();

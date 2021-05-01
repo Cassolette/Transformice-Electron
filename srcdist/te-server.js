@@ -36,12 +36,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.startHttpServer = void 0;
+exports.testHttpServer = exports.startHttpServer = void 0;
 var path = require("path");
 var url = require("url");
 var fs = require("fs");
 var http = require("http");
 var BASE_DIR = path.join(__dirname, "..");
+var SERVER_TEST_PATH = "/TeServerTest";
 /**
  * Set up a local HTTP webserver which will respond with contents in /resources directory.
  * This is needed because flash refuses to send ExternalInterface calls when loading the
@@ -57,6 +58,12 @@ function startHttpServer() {
                         var urlobj = url.parse(req.url);
                         var pathname = urlobj.pathname;
                         res.setTimeout(5000);
+                        /* Connectivity test */
+                        if (pathname == SERVER_TEST_PATH) {
+                            res.writeHead(200);
+                            res.end(SERVER_TEST_PATH);
+                            return;
+                        }
                         fs.readFile(path.join(BASE_DIR, "resources", pathname), function (err, contents) {
                             if (err) {
                                 res.writeHead(400);
@@ -86,3 +93,25 @@ function startHttpServer() {
 }
 exports.startHttpServer = startHttpServer;
 ;
+/**
+ * Tests if the specified local HTTP webserver is working.
+ */
+function testHttpServer(httpUrl) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, new Promise(function (resolve, reject) {
+                    http.get(httpUrl + SERVER_TEST_PATH, function (resp) {
+                        if (resp.statusCode == 200) {
+                            resolve(true);
+                        }
+                        else {
+                            reject(false);
+                        }
+                    }).on("error", function () {
+                        reject(null);
+                    }).setTimeout(100);
+                })];
+        });
+    });
+}
+exports.testHttpServer = testHttpServer;
