@@ -1,9 +1,10 @@
 "use strict";
 exports.__esModule = true;
 exports.TeWindow = void 0;
+var electron_1 = require("electron");
 var te_enums_1 = require("./te-enums");
 var path = require("path");
-var electron_1 = require("electron");
+var electron_2 = require("electron");
 var te_consts_1 = require("./te-consts");
 var te_process_1 = require("./te-process");
 var BASE_DIR = path.join(__dirname, "..");
@@ -12,14 +13,16 @@ var FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
 var FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
 var TeWindow = /** @class */ (function () {
     function TeWindow() {
+        /** The description of the last error that happened */
+        this.errorDesc = "";
         this.windowTitle = te_consts_1.APP_NAME;
         this.windowBgColor = "#000000";
     }
     /* TODO: Find out if class properties can be overriden before constructor() is called.. */
     TeWindow.prototype._constructor = function (httpUrl) {
-        var _this = this;
+        var _this_1 = this;
         this.httpUrl = httpUrl;
-        var bwin = new electron_1.BrowserWindow({
+        var bwin = new electron_2.BrowserWindow({
             width: 800,
             height: 600,
             frame: true,
@@ -31,11 +34,11 @@ var TeWindow = /** @class */ (function () {
             webPreferences: {
                 plugins: true,
                 sandbox: true,
-                contextIsolation: false,
+                contextIsolation: true,
                 preload: path.join(__dirname, "preload.js")
             }
         });
-        bwin.setMenu(electron_1.Menu.buildFromTemplate([
+        bwin.setMenu(electron_2.Menu.buildFromTemplate([
             {
                 label: 'Zoom In',
                 click: function () {
@@ -69,7 +72,7 @@ var TeWindow = /** @class */ (function () {
                     {
                         label: 'Reload',
                         click: function () {
-                            _this.load();
+                            _this_1.load();
                         }
                     },
                     {
@@ -89,7 +92,7 @@ var TeWindow = /** @class */ (function () {
                     {
                         label: 'Clear Cache',
                         click: function () {
-                            electron_1.dialog.showMessageBox(bwin, {
+                            electron_2.dialog.showMessageBox(bwin, {
                                 type: "question",
                                 title: "Clear Cache",
                                 message: "Are you sure you want to clear the cache?",
@@ -100,7 +103,7 @@ var TeWindow = /** @class */ (function () {
                             }).then(function (res) {
                                 if (res.response == 1) {
                                     bwin.webContents.session.clearCache().then(function () {
-                                        electron_1.dialog.showMessageBox(bwin, {
+                                        electron_2.dialog.showMessageBox(bwin, {
                                             type: "info",
                                             title: "Clear Cache",
                                             message: "Successfully cleared cache."
@@ -113,7 +116,7 @@ var TeWindow = /** @class */ (function () {
                     {
                         label: 'Preferences',
                         click: function () {
-                            _this.showPreferences();
+                            _this_1.showPreferences();
                         }
                     },
                     {
@@ -126,10 +129,10 @@ var TeWindow = /** @class */ (function () {
                     {
                         label: 'About',
                         click: function () {
-                            electron_1.dialog.showMessageBox(bwin, {
+                            electron_2.dialog.showMessageBox(bwin, {
                                 type: "info",
                                 title: "About " + te_consts_1.APP_NAME,
-                                message: "Version: " + electron_1.app.getVersion()
+                                message: "Version: " + electron_2.app.getVersion()
                             });
                         }
                     },
@@ -153,22 +156,27 @@ var TeWindow = /** @class */ (function () {
                 ]
             }
         ]));
-        bwin.webContents.on('did-finish-load', function () {
-            //this.onReady();
-        });
+        var _this = this;
         bwin.webContents.on('did-fail-load', function (event, errCode, errDesc) {
             _this.onFail(errDesc);
         });
         /* Open external links in user's preferred browser rather than in Electron */
         bwin.webContents.on('new-window', function (event, url) {
             event.preventDefault();
-            electron_1.shell.openExternal(url);
+            electron_2.shell.openExternal(url);
         });
         /* Don't change the window title */
         bwin.on('page-title-updated', function (event) {
             event.preventDefault();
         });
         this.browserWindow = bwin;
+        /* Get error from loading */
+        electron_1.ipcMain.on("send-te-error", function (event) {
+            if (bwin.webContents.id == event.sender.id) {
+                event.reply("send-te-error", _this.errorDesc);
+                _this.errorDesc = "";
+            }
+        });
     };
     TeWindow.prototype.onFail = function (errDesc) {
         var bwin = this.browserWindow;
@@ -176,16 +184,16 @@ var TeWindow = /** @class */ (function () {
             bwin.loadURL(FILE_URL_FAILURE);
             //win.show();
         }
-        //this.errorDesc = errDesc;
+        this.errorDesc = errDesc;
     };
     TeWindow.prototype.showPreferences = function () {
-        var _this = this;
+        var _this_1 = this;
         if (this.prefsWin) {
             /* already open - focus and bail out */
             this.prefsWin.focus();
             return;
         }
-        this.prefsWin = new electron_1.BrowserWindow({
+        this.prefsWin = new electron_2.BrowserWindow({
             width: 680,
             height: 400,
             frame: true,
@@ -202,8 +210,8 @@ var TeWindow = /** @class */ (function () {
             }
         });
         this.prefsWin.on("closed", function () {
-            _this.prefsWin = null;
-            _this.browserWindow.focus();
+            _this_1.prefsWin = null;
+            _this_1.browserWindow.focus();
         });
         this.prefsWin.loadURL(FILE_URL_PREFS);
     };

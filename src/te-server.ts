@@ -19,8 +19,8 @@ export async function startHttpServer() {
 
         fs.readFile(path.join(BASE_DIR, "resources", pathname), (err, contents) => {
             if (err) {
-                res.writeHead(404);
-                res.end();
+                res.writeHead(400);
+                res.end("Error: Could not load");
             } else {
                 res.setHeader("Content-Type", "text/html");
                 res.writeHead(200);

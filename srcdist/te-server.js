@@ -59,8 +59,8 @@ function startHttpServer() {
                         res.setTimeout(5000);
                         fs.readFile(path.join(BASE_DIR, "resources", pathname), function (err, contents) {
                             if (err) {
-                                res.writeHead(404);
-                                res.end();
+                                res.writeHead(400);
+                                res.end("Error: Could not load");
                             }
                             else {
                                 res.setHeader("Content-Type", "text/html");

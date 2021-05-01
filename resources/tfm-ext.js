@@ -1,5 +1,3 @@
-var ipc = window.ipcRenderer;
-
 /* GAPI */
 var gapiInitialise = false;
 
@@ -100,7 +98,8 @@ function recupLangue() {
     return langue;
 }
 function pleinEcran(OUI) {
-    ipc.send("tfm-full-screen", OUI);
+    if (!window.electron) { console.log("not loaded in electron"); return; }
+    window.electron.sendTFMFullscreenMode(OUI);
 }
 
 function defActiviteDiscord(JOUEUR, SALON, IMAGE1, IMAGE2) {

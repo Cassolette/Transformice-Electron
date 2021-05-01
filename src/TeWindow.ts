@@ -1,3 +1,4 @@
+import { ipcMain } from "electron";
 import { TeGames } from "./te-enums";
 import * as path from "path";
 import {
@@ -21,6 +22,8 @@ export abstract class TeWindow {
     /** The underlying electron browser window */
     public browserWindow: BrowserWindow;
     protected prefsWin: BrowserWindow;
+    /** The description of the last error that happened */
+    protected errorDesc: string = "";
     protected windowTitle: string = APP_NAME;
     protected windowBgColor: string = "#000000";
 
@@ -40,7 +43,7 @@ export abstract class TeWindow {
             webPreferences: {
                 plugins: true,
                 sandbox: true,
-                contextIsolation: false,
+                contextIsolation: true,
                 preload: path.join(__dirname, "preload.js")
             }
         });
@@ -163,12 +166,9 @@ export abstract class TeWindow {
             }])
         );
 
-        bwin.webContents.on('did-finish-load', () => {
-            //this.onReady();
-        });
-
+        let _this = this;
         bwin.webContents.on('did-fail-load', (event, errCode, errDesc) => {
-            this.onFail(errDesc);
+            _this.onFail(errDesc);
         });
 
         /* Open external links in user's preferred browser rather than in Electron */
@@ -183,6 +183,14 @@ export abstract class TeWindow {
         });
 
         this.browserWindow = bwin;
+
+        /* Get error from loading */
+        ipcMain.on("send-te-error", (event) => {
+            if (bwin.webContents.id == event.sender.id) {
+                event.reply("send-te-error", _this.errorDesc);
+                _this.errorDesc = "";
+            }
+        });
     }
 
     onFail(errDesc: string) {
@@ -191,7 +199,7 @@ export abstract class TeWindow {
                 bwin.loadURL(FILE_URL_FAILURE);
                 //win.show();
             }
-            //this.errorDesc = errDesc;
+            this.errorDesc = errDesc;
     }
 
     showPreferences() {

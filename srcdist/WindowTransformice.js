@@ -16,18 +16,32 @@ var __extends = (this && this.__extends) || (function () {
 })();
 exports.__esModule = true;
 exports.WindowTransformice = void 0;
+var electron_1 = require("electron");
 var electronSets = require("electron-settings");
 var TeWindow_1 = require("./TeWindow");
 var PATH_URL_TRANSFORMICE = "/tfm.html";
 var WindowTransformice = /** @class */ (function (_super) {
     __extends(WindowTransformice, _super);
     function WindowTransformice(httpUrl) {
-        var _this = _super.call(this) || this;
-        _this.windowTitle = "Transformice";
-        _this.windowBgColor = "#6A7495";
+        var _this_1 = _super.call(this) || this;
+        _this_1.windowTitle = "Transformice";
+        _this_1.windowBgColor = "#6A7495";
         /* TODO: Find out if class properties can be overriden before constructor() is called.. */
-        _this._constructor(httpUrl);
-        return _this;
+        _this_1._constructor(httpUrl);
+        var _this = _this_1;
+        /* TFM Fullscreen event */
+        electron_1.ipcMain.on("tfm-fullscreen-mode", function (event, mode) {
+            var bwin = _this.browserWindow;
+            if (bwin.webContents.id == event.sender.id) {
+                if (!mode) {
+                    bwin.setFullScreen(false);
+                }
+                else if (mode == 1) {
+                    bwin.maximize();
+                }
+            }
+        });
+        return _this_1;
     }
     WindowTransformice.prototype.load = function () {
         /* Read alignment prefs */

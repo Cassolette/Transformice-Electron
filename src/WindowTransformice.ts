@@ -1,3 +1,4 @@
+import { ipcMain } from "electron";
 import * as electronSets from "electron-settings";
 import { TeWindow } from "./TeWindow";
 
@@ -11,6 +12,19 @@ export class WindowTransformice extends TeWindow {
         super();
         /* TODO: Find out if class properties can be overriden before constructor() is called.. */
         this._constructor(httpUrl);
+
+        let _this = this;
+        /* TFM Fullscreen event */
+        ipcMain.on("tfm-fullscreen-mode", (event, mode) => {
+            let bwin = _this.browserWindow;
+            if (bwin.webContents.id == event.sender.id) {
+                if (!mode) {
+                    bwin.setFullScreen(false);
+                } else if (mode == 1) {
+                    bwin.maximize();
+                }
+            }
+        });
     }
 
     load() {

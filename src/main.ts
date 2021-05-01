@@ -95,4 +95,4 @@ readyHandler.afterReady((httpUrl) => {
     createWindow(gameId, httpUrl).load();
 });
 
-console.log(process.argv);
+//console.log(process.argv);

@@ -15,7 +15,7 @@
     "buildall": "npm run tsc && electron-builder -wml --x64"
   },
   "build": {
-    "asar": false,
+    "asar": true,
     "productName": "Transformice",
     "appId": "io.bagueatt.transformice.electron",
     "icon": "resources/icon.png",
@@ -69,8 +69,8 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
-    "electron": "^11.1.1",
-    "electron-builder": "^22.9.1",
+    "electron": "11.4.4",
+    "electron-builder": "^22.10.5",
     "eslint": "^7.25.0",
     "typescript": "^4.2.4"
   },
