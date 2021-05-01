@@ -1,26 +1,28 @@
 {
   "name": "transformice-electron",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "description": "A cross-platform Transformice standalone app running on Electron.",
-  "main": "main.js",
+  "main": "srcdist/main.js",
   "scripts": {
-    "start": "electron .",
-    "clean": "node resources/clean.js",
-    "build": "electron-builder --x64",
-    "buildwin": "electron-builder -w --x64",
-    "buildmac": "electron-builder -m --x64",
-    "buildlnx": "electron-builder -l --x64",
-    "buildall": "electron-builder -wml --x64"
+    "start": "npm run tsc && electron .",
+    "clean": "node clean.js",
+    "tsc": "tsc",
+    "lint": "eslint -c .eslintrc --ext .ts ./src",
+    "build": "npm run tsc && electron-builder --x64",
+    "buildwin": "npm run tsc && electron-builder -w --x64",
+    "buildmac": "npm run tsc && electron-builder -m --x64",
+    "buildlnx": "npm run tsc && electron-builder -l --x64",
+    "buildall": "npm run tsc && electron-builder -wml --x64"
   },
   "build": {
+    "asar": false,
     "productName": "Transformice",
     "appId": "io.bagueatt.transformice.electron",
     "icon": "resources/icon.png",
     "files": [
       "resources",
       "node_modules",
-      "main.js",
-      "preload.js"
+      "srcdist"
     ],
     "win": {
       "target": "nsis",
@@ -65,8 +67,12 @@
   },
   "homepage": "https://github.com/Cassolette/Transformice-Electron#readme",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/parser": "^4.22.0",
     "electron": "^11.1.1",
-    "electron-builder": "^22.9.1"
+    "electron-builder": "^22.9.1",
+    "eslint": "^7.25.0",
+    "typescript": "^4.2.4"
   },
   "dependencies": {
     "electron-settings": "^4.0.2",

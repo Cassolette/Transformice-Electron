@@ -43,9 +43,9 @@ var nav = {};
     document.getElementById(el_id).classList.add("active");
 
     // load content
-    if (!window.exports) { console.log("not loaded in electron"); return; }
+    if (!window.electron) { console.log("not loaded in electron"); return; }
 
-    window.exports.readFile(submenus[id].file, (err, contents) => {
+    window.electron.readFile(submenus[id].file, (err, contents) => {
         let frame = document.createElement("iframe");
         frame.setAttribute("srcdoc", contents || "");
 

@@ -1,9 +1,10 @@
-const fs = require("fs");
-const path = require("path");
+var electronSets = require("electron-settings");
+var fs = require("fs");
+var path = require("path");
 
-window.exports = {
-    readFile: function (filename, cb) {
-        fs.readFile(path.join(__dirname, filename), cb);
+window.electron = {
+    readFile: (filename, cb) => {
+        return fs.readFile(path.join(__dirname, filename), cb);
     },
-    electronSets: require("electron-settings"),
+    electronSets: electronSets
 };
