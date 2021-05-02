@@ -80,7 +80,6 @@ function startHttpServer() {
                 case 1:
                     port = _a.sent();
                     server.listen(port);
-                    console.log("Set up local HTTP server @ http://localhost:" + port);
                     /* Disable TCP delay */
                     server.on("connection", function (socket) {
                         socket.setNoDelay(true);

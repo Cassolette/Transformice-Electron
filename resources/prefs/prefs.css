@@ -1,6 +1,7 @@
 body {
   margin: 0;
-  font-family: Tahoma, Arial;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 12px;
 }
 
 .container {
@@ -10,11 +11,9 @@ body {
 
 #navigation {
   width: 200px;
-  //border: 1px solid red;
 }
 
 #content {
-  //border: 1px solid red;
   box-sizing: border-box;
   flex-grow: 1;
   background-color: #f0f0f0;
@@ -52,9 +51,7 @@ body {
   outline: none;
   text-align: left;
   font: inherit;
-  font-size: 14px;
   border-radius: 5px;
-  //cursor: pointer;
 }
 
 #nav-table td button:hover {

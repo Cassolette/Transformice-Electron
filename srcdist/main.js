@@ -116,7 +116,6 @@ function startServer(instance_lock) {
             switch (_a.label) {
                 case 0:
                     stored_url = null;
-                    console.log("first", SERVER_URL_FILE);
                     if (!!instance_lock) return [3 /*break*/, 4];
                     _a.label = 1;
                 case 1:
@@ -135,6 +134,7 @@ function startServer(instance_lock) {
                 case 4:
                     if (stored_url) {
                         readyHandler.httpServerReady(stored_url);
+                        console.log("Existing local HTTP server @ " + stored_url);
                     }
                     else {
                         te_server_1.startHttpServer().then(function (httpUrl) {
@@ -145,6 +145,7 @@ function startServer(instance_lock) {
                                 }
                             });
                             readyHandler.httpServerReady(httpUrl);
+                            console.log("Set up local HTTP server @ " + httpUrl);
                         });
                     }
                     return [2 /*return*/];

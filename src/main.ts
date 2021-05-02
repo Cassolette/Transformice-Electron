@@ -80,7 +80,6 @@ function createWindow(gameType: TeGames, httpUrl: string) {
 
 async function startServer(instance_lock: Boolean) {
     let stored_url = null;
-    console.log("first", SERVER_URL_FILE)
     if (!instance_lock) {
         // Secondary instance: Try to read for any existing server URL stored
         try {
@@ -95,6 +94,7 @@ async function startServer(instance_lock: Boolean) {
 
     if (stored_url) {
         readyHandler.httpServerReady(stored_url);
+        console.log("Existing local HTTP server @ " + stored_url);
     } else {
         startHttpServer().then((httpUrl) => {
             // Store the current HTTP url
@@ -104,6 +104,7 @@ async function startServer(instance_lock: Boolean) {
                 }
             });
             readyHandler.httpServerReady(httpUrl);
+            console.log("Set up local HTTP server @ " + httpUrl);
         });
     }
 }

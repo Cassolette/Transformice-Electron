@@ -41,7 +41,6 @@ export async function startHttpServer() {
     /* Get an available port */
     const port = await require("get-port")();
     server.listen(port);
-    console.log("Set up local HTTP server @ http://localhost:" + port);
 
     /* Disable TCP delay */
     server.on("connection", (socket) => {
