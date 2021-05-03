@@ -5,6 +5,7 @@
   "main": "srcdist/main.js",
   "scripts": {
     "start": "npm run tsc && electron .",
+    "startnsb": "npm run tsc && electron . --no-sandbox",
     "clean": "node clean.js",
     "tsc": "tsc",
     "lint": "eslint -c .eslintrc --ext .ts ./src",

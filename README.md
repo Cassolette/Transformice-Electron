@@ -12,10 +12,11 @@ You can then run the app directly from the command line:
 ```
 npm start
 ```
+On Linux, you may hit an error with "Can't load plugin" when running the app via `npm start`. Instead, you may want to try `npm run startnsb`, which launches Electron without the [Chromium sandbox](https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md). Be aware that this can have adverse effects on security, however.
 
 If you'd like to package this as a Desktop application, run the following command:
 ```
-npm run-script ${package}
+npm run ${package}
 ```
 
 Where `${package}` targets the platform and architecture:
