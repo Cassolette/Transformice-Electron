@@ -1,37 +1,40 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-exports.__esModule = true;
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindowTransformice = void 0;
-var electron_1 = require("electron");
-var electronSets = require("electron-settings");
-var TeWindow_1 = require("./TeWindow");
-var PATH_URL_TRANSFORMICE = "/tfm.html";
-var WindowTransformice = /** @class */ (function (_super) {
-    __extends(WindowTransformice, _super);
-    function WindowTransformice(httpUrl) {
-        var _this_1 = _super.call(this) || this;
-        _this_1.windowTitle = "Transformice";
-        _this_1.windowBgColor = "#6A7495";
+const electron_1 = require("electron");
+const electronSets = __importStar(require("electron-settings"));
+const TeWindow_1 = require("./TeWindow");
+const PATH_URL_TRANSFORMICE = "/tfm.html";
+class WindowTransformice extends TeWindow_1.TeWindow {
+    constructor(httpUrl) {
+        super();
+        this.windowTitle = "Transformice";
+        this.windowBgColor = "#6A7495";
         /* TODO: Find out if class properties can be overriden before constructor() is called.. */
-        _this_1._constructor(httpUrl);
-        var _this = _this_1;
+        this._constructor(httpUrl);
+        let _this = this;
         /* TFM Fullscreen event */
-        electron_1.ipcMain.on("tfm-fullscreen-mode", function (event, mode) {
-            var bwin = _this.browserWindow;
+        electron_1.ipcMain.on("tfm-fullscreen-mode", (event, mode) => {
+            let bwin = _this.browserWindow;
             if (bwin.webContents.id == event.sender.id) {
                 if (!mode) {
                     bwin.setFullScreen(false);
@@ -41,15 +44,14 @@ var WindowTransformice = /** @class */ (function (_super) {
                 }
             }
         });
-        return _this_1;
     }
-    WindowTransformice.prototype.load = function () {
+    load() {
         /* Read alignment prefs */
-        var align = electronSets.getSync("general.align") || "";
-        var spl = align.split(",");
+        let align = electronSets.getSync("general.align") || "";
+        let spl = align.split(",");
         if (spl.length >= 2) {
-            var x = "";
-            var y = "";
+            let x = "";
+            let y = "";
             switch (parseInt(spl[0], 10)) {
                 case 1:
                     x = "l";
@@ -72,7 +74,6 @@ var WindowTransformice = /** @class */ (function (_super) {
             console.log("corrupt align prefs : " + align + electronSets.file());
         }
         this.browserWindow.loadURL(this.httpUrl + PATH_URL_TRANSFORMICE + "?align=" + align);
-    };
-    return WindowTransformice;
-}(TeWindow_1.TeWindow));
+    }
+}
 exports.WindowTransformice = WindowTransformice;

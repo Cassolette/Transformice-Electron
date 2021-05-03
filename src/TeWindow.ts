@@ -1,10 +1,10 @@
-import { ipcMain } from "electron";
 import { TeGames } from "./te-enums";
 import * as path from "path";
 import {
     app,
     BrowserWindow,
     dialog,
+    ipcMain,
     Menu,
     shell as electronShell
 } from "electron";

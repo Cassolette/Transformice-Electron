@@ -1,4 +1,4 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.APP_NAME = void 0;
 exports.APP_NAME = "Transformice";

@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeGames = void 0;
 /**
  * Enumerates the different 801 games

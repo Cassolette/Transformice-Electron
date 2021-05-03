@@ -1,28 +1,46 @@
 "use strict";
-exports.__esModule = true;
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeWindow = void 0;
-var electron_1 = require("electron");
-var te_enums_1 = require("./te-enums");
-var path = require("path");
-var electron_2 = require("electron");
-var te_consts_1 = require("./te-consts");
-var te_process_1 = require("./te-process");
-var BASE_DIR = path.join(__dirname, "..");
-var FILE_BASE = "file://" + BASE_DIR;
-var FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
-var FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
-var TeWindow = /** @class */ (function () {
-    function TeWindow() {
+const electron_1 = require("electron");
+const te_enums_1 = require("./te-enums");
+const path = __importStar(require("path"));
+const electron_2 = require("electron");
+const te_consts_1 = require("./te-consts");
+const te_process_1 = require("./te-process");
+const BASE_DIR = path.join(__dirname, "..");
+const FILE_BASE = "file://" + BASE_DIR;
+const FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
+const FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
+class TeWindow {
+    constructor() {
         /** The description of the last error that happened */
         this.errorDesc = "";
         this.windowTitle = te_consts_1.APP_NAME;
         this.windowBgColor = "#000000";
     }
     /* TODO: Find out if class properties can be overriden before constructor() is called.. */
-    TeWindow.prototype._constructor = function (httpUrl) {
-        var _this_1 = this;
+    _constructor(httpUrl) {
         this.httpUrl = httpUrl;
-        var bwin = new electron_2.BrowserWindow({
+        let bwin = new electron_2.BrowserWindow({
             width: 800,
             height: 600,
             frame: true,
@@ -41,7 +59,7 @@ var TeWindow = /** @class */ (function () {
         bwin.setMenu(electron_2.Menu.buildFromTemplate([
             {
                 label: 'Zoom In',
-                click: function () {
+                click: () => {
                     var webContents = bwin.webContents;
                     /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 + 10) / 100;
@@ -50,7 +68,7 @@ var TeWindow = /** @class */ (function () {
             },
             {
                 label: 'Zoom Out',
-                click: function () {
+                click: () => {
                     var webContents = bwin.webContents;
                     /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 - 10) / 100;
@@ -60,7 +78,7 @@ var TeWindow = /** @class */ (function () {
             },
             {
                 label: 'Reset Zoom',
-                click: function () {
+                click: () => {
                     var webContents = bwin.webContents;
                     var currentZoomFactor = webContents.getZoomFactor();
                     webContents.setZoomFactor(1);
@@ -71,19 +89,19 @@ var TeWindow = /** @class */ (function () {
                 submenu: [
                     {
                         label: 'Reload',
-                        click: function () {
-                            _this_1.load();
+                        click: () => {
+                            this.load();
                         }
                     },
                     {
                         label: 'Fullscreen',
-                        click: function () {
+                        click: () => {
                             bwin.setFullScreen(!bwin.isFullScreen());
                         }
                     },
                     {
                         label: 'Fit Window',
-                        click: function () {
+                        click: () => {
                             bwin.unmaximize();
                             bwin.setFullScreen(false);
                             bwin.setContentSize(800, 600);
@@ -91,7 +109,7 @@ var TeWindow = /** @class */ (function () {
                     },
                     {
                         label: 'Clear Cache',
-                        click: function () {
+                        click: () => {
                             electron_2.dialog.showMessageBox(bwin, {
                                 type: "question",
                                 title: "Clear Cache",
@@ -100,9 +118,9 @@ var TeWindow = /** @class */ (function () {
                                 buttons: ["Cancel", "Yes"],
                                 cancelId: 0,
                                 defaultId: 1
-                            }).then(function (res) {
+                            }).then((res) => {
                                 if (res.response == 1) {
-                                    bwin.webContents.session.clearCache().then(function () {
+                                    bwin.webContents.session.clearCache().then(() => {
                                         electron_2.dialog.showMessageBox(bwin, {
                                             type: "info",
                                             title: "Clear Cache",
@@ -115,20 +133,20 @@ var TeWindow = /** @class */ (function () {
                     },
                     {
                         label: 'Preferences',
-                        click: function () {
-                            _this_1.showPreferences();
+                        click: () => {
+                            this.showPreferences();
                         }
                     },
                     {
                         label: 'DevTools',
                         accelerator: 'CmdOrCtrl+Shift+I',
-                        click: function () {
+                        click: () => {
                             bwin.webContents.openDevTools();
                         }
                     },
                     {
                         label: 'About',
-                        click: function () {
+                        click: () => {
                             electron_2.dialog.showMessageBox(bwin, {
                                 type: "info",
                                 title: "About " + te_consts_1.APP_NAME,
@@ -143,51 +161,50 @@ var TeWindow = /** @class */ (function () {
                 submenu: [
                     {
                         label: 'Transformice',
-                        click: function () {
+                        click: () => {
                             te_process_1.newTEProcess(te_enums_1.TeGames.TRANSFORMICE);
                         }
                     },
                     {
                         label: 'DeadMaze',
-                        click: function () {
+                        click: () => {
                             te_process_1.newTEProcess(te_enums_1.TeGames.DEADMAZE);
                         }
                     },
                 ]
             }
         ]));
-        var _this = this;
-        bwin.webContents.on('did-fail-load', function (event, errCode, errDesc) {
+        let _this = this;
+        bwin.webContents.on('did-fail-load', (event, errCode, errDesc) => {
             _this.onFail(errDesc);
         });
         /* Open external links in user's preferred browser rather than in Electron */
-        bwin.webContents.on('new-window', function (event, url) {
+        bwin.webContents.on('new-window', (event, url) => {
             event.preventDefault();
             electron_2.shell.openExternal(url);
         });
         /* Don't change the window title */
-        bwin.on('page-title-updated', function (event) {
+        bwin.on('page-title-updated', (event) => {
             event.preventDefault();
         });
         this.browserWindow = bwin;
         /* Get error from loading */
-        electron_1.ipcMain.on("send-te-error", function (event) {
+        electron_1.ipcMain.on("send-te-error", (event) => {
             if (bwin.webContents.id == event.sender.id) {
                 event.reply("send-te-error", _this.errorDesc);
                 _this.errorDesc = "";
             }
         });
-    };
-    TeWindow.prototype.onFail = function (errDesc) {
-        var bwin = this.browserWindow;
+    }
+    onFail(errDesc) {
+        let bwin = this.browserWindow;
         if (!bwin.isDestroyed()) {
             bwin.loadURL(FILE_URL_FAILURE);
             //win.show();
         }
         this.errorDesc = errDesc;
-    };
-    TeWindow.prototype.showPreferences = function () {
-        var _this_1 = this;
+    }
+    showPreferences() {
         if (this.prefsWin) {
             /* already open - focus and bail out */
             this.prefsWin.focus();
@@ -209,12 +226,11 @@ var TeWindow = /** @class */ (function () {
                 preload: path.join(BASE_DIR, "resources", "prefs", "preload_prefs.js")
             }
         });
-        this.prefsWin.on("closed", function () {
-            _this_1.prefsWin = null;
-            _this_1.browserWindow.focus();
+        this.prefsWin.on("closed", () => {
+            this.prefsWin = null;
+            this.browserWindow.focus();
         });
         this.prefsWin.loadURL(FILE_URL_PREFS);
-    };
-    return TeWindow;
-}());
+    }
+}
 exports.TeWindow = TeWindow;
