@@ -13,7 +13,8 @@
     "buildwin": "npm run tsc && electron-builder -w --x64",
     "buildmac": "npm run tsc && electron-builder -m --x64",
     "buildlnx": "npm run tsc && electron-builder -l --x64",
-    "buildall": "npm run tsc && electron-builder -wml --x64"
+    "buildall": "npm run tsc && electron-builder -wml --x64",
+    "publish": "npm run tsc && electron-builder --x64 --publish always"
   },
   "build": {
     "asar": true,
@@ -35,10 +36,6 @@
       "category": "public.app-category.games",
       "target": "dmg",
       "identity": false,
-      "publish": {
-        "provider": "github",
-        "releaseType": "release"
-      },
       "files": [
         "flash-plugin/mac"
       ]
@@ -49,6 +46,10 @@
       "files": [
         "flash-plugin/lnx"
       ]
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
     },
     "asarUnpack": [
       "flash-plugin"

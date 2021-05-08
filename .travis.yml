@@ -16,4 +16,4 @@ cache:
 
 script:
   - npm i
-  - npm run-script build
+  - npm run-script publish
