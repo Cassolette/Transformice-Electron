@@ -3,6 +3,7 @@ import { TeGames } from "./te-enums";
 import { WindowTransformice } from "./WindowTransformice";
 import { startHttpServer, testHttpServer } from "./te-server";
 import { WindowDeadMaze } from "./WindowDeadMaze";
+import { ArgpObject } from "./argparser";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -117,12 +118,15 @@ async function startServer(instance_lock: Boolean) {
     app.whenReady().then(readyHandler.appReady);
     await startServer(instance_lock);
 
+    let argp = new ArgpObject(process.argv);
+
     /* All ready! */
     readyHandler.afterReady((httpUrl) => {
         let gameId: TeGames = TeGames.TRANSFORMICE;
 
-        if (process.argv[2]) {
-            let id = +process.argv[2];
+        let id;
+        if (id = argp.getFlag("game-id")) {
+            id = +id;
             if (Object.values(TeGames).includes(id)) {
                 // The ID is valid and exists in the enums
                 gameId = id;
@@ -133,4 +137,5 @@ async function startServer(instance_lock: Boolean) {
     });
 
     //console.log(process.argv);
+    //console.log("ree",argp.toArgv())
 })();

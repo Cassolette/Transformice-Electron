@@ -20,11 +20,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newTEProcess = void 0;
+const argparser_1 = require("./argparser");
 const proc = __importStar(require("child_process"));
 function newTEProcess(gameId) {
-    let child_proc = proc.spawn(process.argv[0], [process.argv[1], gameId.toString()], {
+    let argp = new argparser_1.ArgpObject(process.argv);
+    argp.setFlag("game-id", gameId.toString());
+    let argv = argp.toArgv();
+    let child_proc = proc.spawn(argv[0], argv.slice(1), {
         detached: true,
-        stdio: 'ignore',
+        stdio: 'inherit',
         windowsHide: false // We want to show the window, duh.
     });
     child_proc.unref();

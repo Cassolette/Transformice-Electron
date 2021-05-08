@@ -24,6 +24,7 @@ const te_enums_1 = require("./te-enums");
 const WindowTransformice_1 = require("./WindowTransformice");
 const te_server_1 = require("./te-server");
 const WindowDeadMaze_1 = require("./WindowDeadMaze");
+const argparser_1 = require("./argparser");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 const BASE_DIR = path.join(__dirname, "..");
@@ -128,11 +129,13 @@ async function startServer(instance_lock) {
     addFlashPlugin();
     electron_1.app.whenReady().then(readyHandler.appReady);
     await startServer(instance_lock);
+    let argp = new argparser_1.ArgpObject(process.argv);
     /* All ready! */
     readyHandler.afterReady((httpUrl) => {
         let gameId = te_enums_1.TeGames.TRANSFORMICE;
-        if (process.argv[2]) {
-            let id = +process.argv[2];
+        let id;
+        if (id = argp.getFlag("game-id")) {
+            id = +id;
             if (Object.values(te_enums_1.TeGames).includes(id)) {
                 // The ID is valid and exists in the enums
                 gameId = id;
@@ -141,4 +144,5 @@ async function startServer(instance_lock) {
         createWindow(gameId, httpUrl).load();
     });
     //console.log(process.argv);
+    console.log("ree", argp.toArgv());
 })();

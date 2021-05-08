@@ -20,10 +20,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeWindow = void 0;
-const electron_1 = require("electron");
 const te_enums_1 = require("./te-enums");
 const path = __importStar(require("path"));
-const electron_2 = require("electron");
+const electron_1 = require("electron");
 const te_consts_1 = require("./te-consts");
 const te_process_1 = require("./te-process");
 const BASE_DIR = path.join(__dirname, "..");
@@ -40,7 +39,7 @@ class TeWindow {
     /* TODO: Find out if class properties can be overriden before constructor() is called.. */
     _constructor(httpUrl) {
         this.httpUrl = httpUrl;
-        let bwin = new electron_2.BrowserWindow({
+        let bwin = new electron_1.BrowserWindow({
             width: 800,
             height: 600,
             frame: true,
@@ -56,7 +55,7 @@ class TeWindow {
                 preload: path.join(__dirname, "preload.js")
             }
         });
-        bwin.setMenu(electron_2.Menu.buildFromTemplate([
+        bwin.setMenu(electron_1.Menu.buildFromTemplate([
             {
                 label: 'Zoom In',
                 click: () => {
@@ -110,7 +109,7 @@ class TeWindow {
                     {
                         label: 'Clear Cache',
                         click: () => {
-                            electron_2.dialog.showMessageBox(bwin, {
+                            electron_1.dialog.showMessageBox(bwin, {
                                 type: "question",
                                 title: "Clear Cache",
                                 message: "Are you sure you want to clear the cache?",
@@ -121,7 +120,7 @@ class TeWindow {
                             }).then((res) => {
                                 if (res.response == 1) {
                                     bwin.webContents.session.clearCache().then(() => {
-                                        electron_2.dialog.showMessageBox(bwin, {
+                                        electron_1.dialog.showMessageBox(bwin, {
                                             type: "info",
                                             title: "Clear Cache",
                                             message: "Successfully cleared cache."
@@ -147,10 +146,10 @@ class TeWindow {
                     {
                         label: 'About',
                         click: () => {
-                            electron_2.dialog.showMessageBox(bwin, {
+                            electron_1.dialog.showMessageBox(bwin, {
                                 type: "info",
                                 title: "About " + te_consts_1.APP_NAME,
-                                message: "Version: " + electron_2.app.getVersion()
+                                message: "Version: " + electron_1.app.getVersion()
                             });
                         }
                     },
@@ -181,7 +180,7 @@ class TeWindow {
         /* Open external links in user's preferred browser rather than in Electron */
         bwin.webContents.on('new-window', (event, url) => {
             event.preventDefault();
-            electron_2.shell.openExternal(url);
+            electron_1.shell.openExternal(url);
         });
         /* Don't change the window title */
         bwin.on('page-title-updated', (event) => {
@@ -210,7 +209,7 @@ class TeWindow {
             this.prefsWin.focus();
             return;
         }
-        this.prefsWin = new electron_2.BrowserWindow({
+        this.prefsWin = new electron_1.BrowserWindow({
             width: 680,
             height: 400,
             frame: true,
