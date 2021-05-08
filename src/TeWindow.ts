@@ -26,14 +26,18 @@ export abstract class TeWindow {
     protected errorDesc: string = "";
     protected windowTitle: string = APP_NAME;
     protected windowBgColor: string = "#000000";
+    /** The window's content width */
+    protected windowWidth = 800;
+    /** The window's content height */
+    protected windowHeight = 600;
 
     /* TODO: Find out if class properties can be overriden before constructor() is called.. */
     _constructor(httpUrl: string) {
         this.httpUrl = httpUrl;
 
         let bwin = new BrowserWindow({
-            width: 800,
-            height: 600,
+            width: this.windowWidth,
+            height: this.windowHeight,
             frame: true,  // show default OS window frame
             useContentSize: true,  // make width & height relative to the content, not the whole window
             show: true,  // show app background instantly until content is loaded
@@ -95,7 +99,7 @@ export abstract class TeWindow {
                         click: () => {
                             bwin.unmaximize();
                             bwin.setFullScreen(false);
-                            bwin.setContentSize(800, 600);
+                            bwin.setContentSize(this.windowWidth, this.windowHeight);
                         }
                     },
                     {

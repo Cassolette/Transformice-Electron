@@ -7,6 +7,8 @@ const PATH_URL_TRANSFORMICE = "/tfm.html";
 export class WindowTransformice extends TeWindow {
     protected windowTitle: string = "Transformice";
     protected windowBgColor: string = "#6A7495";
+    protected windowWidth = 800;
+    protected windowHeight = 600;
 
     constructor(httpUrl: string) {
         super();

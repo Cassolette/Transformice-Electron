@@ -29,6 +29,8 @@ class WindowTransformice extends TeWindow_1.TeWindow {
         super();
         this.windowTitle = "Transformice";
         this.windowBgColor = "#6A7495";
+        this.windowWidth = 800;
+        this.windowHeight = 600;
         /* TODO: Find out if class properties can be overriden before constructor() is called.. */
         this._constructor(httpUrl);
         let _this = this;

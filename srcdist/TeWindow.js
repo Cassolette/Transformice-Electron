@@ -35,13 +35,17 @@ class TeWindow {
         this.errorDesc = "";
         this.windowTitle = te_consts_1.APP_NAME;
         this.windowBgColor = "#000000";
+        /** The window's content width */
+        this.windowWidth = 800;
+        /** The window's content height */
+        this.windowHeight = 600;
     }
     /* TODO: Find out if class properties can be overriden before constructor() is called.. */
     _constructor(httpUrl) {
         this.httpUrl = httpUrl;
         let bwin = new electron_1.BrowserWindow({
-            width: 800,
-            height: 600,
+            width: this.windowWidth,
+            height: this.windowHeight,
             frame: true,
             useContentSize: true,
             show: true,
@@ -103,7 +107,7 @@ class TeWindow {
                         click: () => {
                             bwin.unmaximize();
                             bwin.setFullScreen(false);
-                            bwin.setContentSize(800, 600);
+                            bwin.setContentSize(this.windowWidth, this.windowHeight);
                         }
                     },
                     {

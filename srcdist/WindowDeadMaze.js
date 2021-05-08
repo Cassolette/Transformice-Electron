@@ -8,11 +8,12 @@ class WindowDeadMaze extends TeWindow_1.TeWindow {
         super();
         this.windowTitle = "DeadMaze";
         this.windowBgColor = "#000000";
+        this.windowWidth = 1044;
+        this.windowHeight = 632;
         /* TODO: Find out if class properties can be overriden before constructor() is called.. */
         this._constructor(httpUrl);
     }
     load() {
-        this.browserWindow.maximize();
         this.browserWindow.loadURL(this.httpUrl + PATH_URL_DEADMAZE);
     }
 }
