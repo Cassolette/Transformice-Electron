@@ -144,5 +144,5 @@ async function startServer(instance_lock) {
         createWindow(gameId, httpUrl).load();
     });
     //console.log(process.argv);
-    console.log("ree", argp.toArgv());
+    //console.log("ree",argp.toArgv())
 })();

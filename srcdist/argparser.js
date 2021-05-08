@@ -54,6 +54,7 @@ class ArgpObject {
             let f = new ArgpArgFlag;
             f.name = name;
             f.value = value;
+            this.flagsDict[f.name] = f;
             this.args.push(f);
         }
     }

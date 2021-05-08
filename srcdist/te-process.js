@@ -28,7 +28,7 @@ function newTEProcess(gameId) {
     let argv = argp.toArgv();
     let child_proc = proc.spawn(argv[0], argv.slice(1), {
         detached: true,
-        stdio: 'inherit',
+        stdio: 'ignore',
         windowsHide: false // We want to show the window, duh.
     });
     child_proc.unref();
