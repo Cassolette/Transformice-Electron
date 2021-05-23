@@ -10,6 +10,7 @@ import {
 } from "electron";
 import { APP_NAME } from "./te-consts";
 import { newTEProcess } from "./te-process";
+import { testHttpServer, retrieveServer } from "./te-server";
 
 const BASE_DIR = path.join(__dirname, "..");
 
@@ -86,6 +87,14 @@ export abstract class TeWindow {
                         label: 'Reload',
                         click: () => {
                             this.load();
+                            testHttpServer(this.httpUrl).catch(() => {
+                                // Something went wrong with the server, unload the page and grab a new one
+                                this.browserWindow.loadURL("data:text/plain,");
+                                retrieveServer().then((httpUrl) => {
+                                    this.httpUrl = httpUrl;
+                                    this.load();
+                                });
+                            });
                         }
                     },
                     {

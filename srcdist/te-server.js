@@ -19,12 +19,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.testHttpServer = exports.startHttpServer = void 0;
+exports.retrieveServer = exports.testHttpServer = exports.startHttpServer = void 0;
+const electron_1 = require("electron");
 const path = __importStar(require("path"));
 const url = __importStar(require("url"));
 const fs = __importStar(require("fs"));
 const http = __importStar(require("http"));
 const BASE_DIR = path.join(__dirname, "..");
+const SERVER_URL_FILE = path.join(electron_1.app.getPath("userData"), "server.te");
 const SERVER_TEST_PATH = "/TeServerTest";
 /**
  * Set up a local HTTP webserver which will respond with contents in /resources directory.
@@ -71,16 +73,51 @@ exports.startHttpServer = startHttpServer;
  */
 async function testHttpServer(httpUrl) {
     return new Promise((resolve, reject) => {
-        http.get(httpUrl + SERVER_TEST_PATH, (resp) => {
+        http.get(httpUrl + SERVER_TEST_PATH, { timeout: 100 }, (resp) => {
             if (resp.statusCode == 200) {
                 resolve(true);
             }
             else {
                 reject(false);
             }
-        }).on("error", () => {
+        }).on('timeout', () => {
             reject(null);
-        }).setTimeout(100);
+        }).on('error', () => {
+            reject(null);
+        });
     });
 }
 exports.testHttpServer = testHttpServer;
+/**
+ * Retrieves a working HTTP server with checks to re-use any existing servers before starting a new one.
+ * @param forceStart - Whether to perform the checks or simply start a new server
+ */
+async function retrieveServer(forceStart) {
+    let stored_url = null;
+    if (!forceStart) {
+        try {
+            let server_url = fs.readFileSync(SERVER_URL_FILE).toString();
+            // Test if this server responds
+            if (await testHttpServer(server_url)) {
+                stored_url = server_url;
+            }
+        }
+        catch (err) { }
+    }
+    if (stored_url) {
+        console.log("Existing local HTTP server @ " + stored_url);
+        return stored_url;
+    }
+    else {
+        let http_url = await startHttpServer();
+        // Store the current HTTP url asynchronously
+        fs.writeFile(SERVER_URL_FILE, http_url, (err) => {
+            if (err) {
+                console.error("Failed to save TE server URL.");
+            }
+        });
+        console.log("Set up local HTTP server @ " + http_url);
+        return http_url;
+    }
+}
+exports.retrieveServer = retrieveServer;

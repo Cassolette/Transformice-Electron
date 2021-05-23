@@ -26,9 +26,7 @@ const te_server_1 = require("./te-server");
 const WindowDeadMaze_1 = require("./WindowDeadMaze");
 const argparser_1 = require("./argparser");
 const path = __importStar(require("path"));
-const fs = __importStar(require("fs"));
 const BASE_DIR = path.join(__dirname, "..");
-const SERVER_URL_FILE = path.join(electron_1.app.getPath("userData"), "server.te");
 /* Fire a combined ready event when both app and server are ready */
 var readyHandler;
 (function (readyHandler) {
@@ -93,44 +91,16 @@ function createWindow(gameType, httpUrl) {
             return new WindowTransformice_1.WindowTransformice(httpUrl);
     }
 }
-async function startServer(instance_lock) {
-    let stored_url = null;
-    if (!instance_lock) {
-        // Secondary instance: Try to read for any existing server URL stored
-        try {
-            let server_url = fs.readFileSync(SERVER_URL_FILE).toString();
-            // Test if this server responds
-            if (await te_server_1.testHttpServer(server_url)) {
-                stored_url = server_url;
-            }
-        }
-        catch (err) { }
-    }
-    if (stored_url) {
-        readyHandler.httpServerReady(stored_url);
-        console.log("Existing local HTTP server @ " + stored_url);
-    }
-    else {
-        te_server_1.startHttpServer().then((httpUrl) => {
-            // Store the current HTTP url
-            fs.writeFile(SERVER_URL_FILE, httpUrl, (err) => {
-                if (err) {
-                    console.error("Failed to save TE server URL.");
-                }
-            });
-            readyHandler.httpServerReady(httpUrl);
-            console.log("Set up local HTTP server @ " + httpUrl);
-        });
-    }
-}
 /* Start things up */
 (async function () {
     var instance_lock = electron_1.app.requestSingleInstanceLock();
+    var argp = new argparser_1.ArgpObject(process.argv);
     addFlashPlugin();
     electron_1.app.whenReady().then(readyHandler.appReady);
-    await startServer(instance_lock);
-    let argp = new argparser_1.ArgpObject(process.argv);
-    /* All ready! */
+    // First instance: No need to check for existing server URLs
+    // Secondary instance: Try to read for any existing server URL stored
+    te_server_1.retrieveServer(instance_lock).then(readyHandler.httpServerReady);
+    // All ready!
     readyHandler.afterReady((httpUrl) => {
         let gameId = te_enums_1.TeGames.TRANSFORMICE;
         let id;
@@ -143,6 +113,4 @@ async function startServer(instance_lock) {
         }
         createWindow(gameId, httpUrl).load();
     });
-    //console.log(process.argv);
-    //console.log("ree",argp.toArgv())
 })();

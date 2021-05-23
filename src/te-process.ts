@@ -9,7 +9,7 @@ export function newTEProcess(gameId: TeGames) {
     let argv = argp.toArgv();
     let child_proc = proc.spawn(argv[0], argv.slice(1), {
         detached: true,     // Let the child continue to run even when this process exits
-        stdio: 'ignore',    // Set to 'inherit' to have the child's stdio route to this process' (useful for debugging), 'ignore' otherwise
+        stdio: 'inherit',    // Set to 'inherit' to have the child's stdio route to this process' (useful for debugging), 'ignore' otherwise
         windowsHide: false  // We want to show the window, duh.
     });
     child_proc.unref();

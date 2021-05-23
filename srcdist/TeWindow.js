@@ -25,6 +25,7 @@ const path = __importStar(require("path"));
 const electron_1 = require("electron");
 const te_consts_1 = require("./te-consts");
 const te_process_1 = require("./te-process");
+const te_server_1 = require("./te-server");
 const BASE_DIR = path.join(__dirname, "..");
 const FILE_BASE = "file://" + BASE_DIR;
 const FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
@@ -94,6 +95,14 @@ class TeWindow {
                         label: 'Reload',
                         click: () => {
                             this.load();
+                            te_server_1.testHttpServer(this.httpUrl).catch(() => {
+                                // Something went wrong with the server, unload the page and grab a new one
+                                this.browserWindow.loadURL("data:text/plain,");
+                                te_server_1.retrieveServer().then((httpUrl) => {
+                                    this.httpUrl = httpUrl;
+                                    this.load();
+                                });
+                            });
                         }
                     },
                     {
