@@ -64,7 +64,7 @@ nav.addSubMenus([
   },
   {
     id: "flash",
-    title: "Flash (UNSTABLE)",
+    title: "Flash Player Updates",
     file: "flash.html"
   }
 ]);

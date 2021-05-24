@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style type="text/css">
+        html {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-size: 12px;
+            user-select: none;
+        }
+
+        h1 {
+            font-size: 14px;
+            font-weight: normal;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1:after {
+            position: absolute;
+            top: 51%;
+            overflow: hidden;
+            width: 100%;
+            height: .6px;
+            content: '\a0';
+            margin-left: 10px;
+            background-color: #c2c2c2;
+        }
+
+        .note {
+            color: #A9A9A9;
+            font-size: 10px;
+        }
+
+        div.center {
+            text-align: center;
+        }
+
+        #install {
+            height: 24px;
+        }
+
+        #installed-version {
+            font-weight: bold;
+        }
+
+        .flex-outer {
+            padding: 0 10px;
+        }
+
+        .flex-inner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin: 10px 10px;
+            min-height: 24px;
+        }
+
+        .flex-inner > * {
+            margin: 0;
+        }
+    
+        .flex-inner > label {
+            text-align: right;
+            padding-right: 30px;
+            flex: 1;
+        }
+
+        .flex-inner > *:not(label) {
+            flex: 0 0 60%;
+            max-width: 60%;
+        }
+        
+        .flex-inner2 {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin: 10px 10px;
+            min-height: 24px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <p class="note">Restart the app for changes to apply. Please note that patched versions are not controlled, and if
+        you face any issues, please disable downloaded Flash.</p>
+
+    <div class="container">
+        <div class="flex-outer">
+            <div class="flex-inner">
+                <label for="enable-downloaded">Enable downloaded flash</label>
+                <input type="checkbox" id="enable-downloaded">
+            </div>
+            <div class="flex-inner">
+                <label>Your installed version</label>
+                <div class="center">
+                    <span id="installed-version">None</span>
+                    <button class="uninstall" id="uninstall" hidden>Uninstall</button>
+                </div>
+            </div>
+            <div class="flex-inner">
+                <label for="install_versions">Choose install version</label>
+                <select id="install_versions">
+                </select>
+            </div>
+            <div class="flex-inner2">
+                <button class="install" id="install">Install</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let electron = window.parent.window.electron || window.electron;
+        let electronSets = electron.electronSets;
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Register listeners
+            document.getElementById("enable-downloaded").addEventListener('change', (event) => {
+                let checked = event.currentTarget.checked;
+                electronSets.setSync("flash.enable", checked);
+            });
+
+            var install_dropdown = document.getElementById("install_versions");
+
+            document.getElementById("install").addEventListener('click', (event) => {
+                let version = install_dropdown.value;
+                let ok = confirm(`The Flash version ${version} will be installed. Continue?`);
+                if (!ok) return;
+
+                /** @type { HTMLElement } */ 
+                var el = event.currentTarget;
+
+                el.innerText = "Installing ...";
+                el.disabled = true;
+
+                electron.installFlash(version).on('success', () => {
+                    el.innerText = "Install";
+                    el.disabled = false;
+                    document.getElementById("installed-version").innerText = version;
+                    document.getElementById("uninstall").hidden = false;
+                }).on('error', (err) => {
+                    el.innerText = "Install";
+                    el.disabled = false;
+                    alert(`Install failed: ${err}`);
+                }).on('progress', (prog) => {
+                    el.innerText = `Installing ... ${prog}%`;
+                });
+            });
+
+            document.getElementById("uninstall").addEventListener('click', (event) => {
+                let installed_version = document.getElementById("installed-version");
+                let version = install_dropdown.value;
+                let ok = confirm(`The Flash version ${installed_version.innerText} will be removed. Continue?`);
+                if (!ok) return;
+
+                /** @type { HTMLElement } */ 
+                var el = event.currentTarget;
+
+                el.innerText = "Uninstalling ...";
+                el.disabled = true;
+
+                electron.uninstallFlash().on('success', () => {
+                    el.innerText = "Uninstall";
+                    el.hidden = true;
+                    installed_version.innerText = "None";
+                }).on('error', (err) => {
+                    el.innerText = "Uninstall";
+                    el.disabled = false;
+                    alert(`Uninstall failed: ${err}`);
+                })
+            });
+
+            // Append options
+            electron.getFlashReleases().then((rels) => {
+                var latest_ver = rels.latest;
+                rels.releases.forEach((rel) => {
+                    install_dropdown.append(new Option(rel.name, rel.version));
+                }); 
+            });
+
+            // Set currents
+            var enabled = electronSets.getSync("flash.enable");
+            if (enabled)
+                document.getElementById("enable-downloaded").checked = true
+            
+            var current_version = electronSets.getSync("flash.currentVersion");
+            if (current_version) {
+                document.getElementById("installed-version").innerText = current_version;
+                document.getElementById("uninstall").hidden = false;
+            }
+        });
+
+    </script>
+</body>
+
+</html>

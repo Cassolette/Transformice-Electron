@@ -3,8 +3,12 @@ import { TeGames } from "./te-enums";
 import { WindowTransformice } from "./WindowTransformice";
 import { retrieveServer } from "./te-server";
 import { WindowDeadMaze } from "./WindowDeadMaze";
+import { initIpc } from "./flashrel/init_ipc";
 import { ArgpObject } from "./argparser";
+import { unlink } from "fs";
+import * as electronSets from "electron-settings";
 import * as path from "path";
+import { unlinkSync } from "original-fs";
 
 const BASE_DIR = path.join(__dirname, "..");
 
@@ -40,8 +44,52 @@ module readyHandler {
     }
 }
 
+async function processCustomFlashPlugin() : Promise<boolean> {
+    if (electronSets.getSync("flash.uninstall")) {
+        // Uninstall was scheduled
+        let rel_path = electronSets.getSync("flash.path") as string;
+        if (rel_path) {
+            var fpath = path.join(app.getPath("userData"), rel_path);
+            try {
+                unlinkSync(fpath);
+            } catch (e) {
+                throw `Could not delete file ${rel_path}: ${e}`;
+            }
+            electronSets.unsetSync("flash.currentVersion");
+            electronSets.unsetSync("flash.path");
+            electronSets.unsetSync("flash.uninstall");
+            console.log(`Uninstalled ${rel_path}`);
+            return false;
+        } else {
+            electronSets.unsetSync("flash.uninstall");
+        }
+    }
+
+    if (electronSets.getSync("flash.enable")) {
+        // Custom flash
+        let rel_path = electronSets.getSync("flash.path") as string;
+        if (rel_path) {
+            let fullpath = path.join(app.getPath("userData"), rel_path);
+            app.commandLine.appendSwitch('ppapi-flash-path', fullpath);
+
+            console.log("Loading downloaded Flash", rel_path);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /** Adds the flash plugin path to the chromium cmdline */
-function addFlashPlugin() {
+async function addFlashPlugin() {
+    var use_custom = false;
+    try {
+        use_custom = await processCustomFlashPlugin();
+    } catch (e) {
+        console.error(e);
+    }
+    if (use_custom) return;
+
     let pluginName;
     let iden;
     switch (process.platform) {
@@ -82,11 +130,12 @@ function createWindow(gameType: TeGames, httpUrl: string) {
     var instance_lock = app.requestSingleInstanceLock();
     var argp = new ArgpObject(process.argv);
 
-    addFlashPlugin();
+    await addFlashPlugin();
     app.whenReady().then(readyHandler.appReady);
     // First instance: No need to check for existing server URLs
     // Secondary instance: Try to read for any existing server URL stored
     retrieveServer(instance_lock).then(readyHandler.httpServerReady);
+    initIpc();
 
     // All ready!
     readyHandler.afterReady((httpUrl) => {
