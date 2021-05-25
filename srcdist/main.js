@@ -26,7 +26,6 @@ const WindowDeadMaze_1 = require("./WindowDeadMaze");
 const te_server_1 = require("./te-server");
 const flashrel_1 = require("./flashrel/flashrel");
 const argparser_1 = require("./argparser");
-const fs_1 = require("fs");
 const electronSets = __importStar(require("electron-settings"));
 const path = __importStar(require("path"));
 const BASE_DIR = path.join(__dirname, "..");
@@ -58,26 +57,7 @@ var readyHandler;
     readyHandler.afterReady = afterReady;
 })(readyHandler || (readyHandler = {}));
 function processCustomFlashPlugin() {
-    if (electronSets.getSync("flash.uninstall")) {
-        let rel_path = electronSets.getSync("flash.path");
-        if (rel_path) {
-            var fpath = path.join(electron_1.app.getPath("userData"), rel_path);
-            try {
-                fs_1.unlinkSync(fpath);
-            }
-            catch (e) {
-                throw `Could not delete file ${rel_path}: ${e}`;
-            }
-            electronSets.unsetSync("flash.currentVersion");
-            electronSets.unsetSync("flash.path");
-            electronSets.unsetSync("flash.uninstall");
-            console.log(`Uninstalled ${rel_path}`);
-            return false;
-        }
-        else {
-            electronSets.unsetSync("flash.uninstall");
-        }
-    }
+    flashrel_1.uninstallFlashWorker();
     if (electronSets.getSync("flash.enable")) {
         let rel_path = electronSets.getSync("flash.path");
         if (rel_path) {

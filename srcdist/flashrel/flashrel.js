@@ -22,12 +22,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initIpc = void 0;
+exports.uninstallFlashWorker = exports.initIpc = void 0;
 const electron_1 = require("electron");
-const electronSets = __importStar(require("electron-settings"));
 const fs_1 = require("fs");
 const stream_1 = require("stream");
 const util_1 = require("util");
+const electronSets = __importStar(require("electron-settings"));
 const path = __importStar(require("path"));
 const url = __importStar(require("url"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
@@ -67,10 +67,24 @@ async function getReleasePerPlatform() {
     };
 }
 async function installFlash(version) {
-    if (is_installing) {
-        throw "Installation is still in progress.";
+    var uninstalls = electronSets.getSync("flash.uninstall");
+    if (Array.isArray(uninstalls)) {
+        let found_uninstall = null;
+        for (let i = 0; i < uninstalls.length; i++) {
+            if (uninstalls[i].version == version) {
+                await electronSets.set("flash.currentVersion", version);
+                await electronSets.set("flash.path", uninstalls[i].path);
+                uninstalls.splice(i);
+                if (uninstalls.length > 0) {
+                    electronSets.setSync("flash.uninstall", uninstalls);
+                }
+                else {
+                    electronSets.unsetSync("flash.uninstall");
+                }
+                return;
+            }
+        }
     }
-    is_installing = true;
     var releases = (await getReleasePerPlatform()).releases;
     var rel = null;
     for (let i = 0; i < releases.length; i++) {
@@ -89,15 +103,26 @@ async function installFlash(version) {
         throw `Unexpected response ${response.statusText}`;
     var stream = fs_1.createWriteStream(path.join(electron_1.app.getPath("userData"), filename));
     await streamPipeline(response.body, stream);
+    try {
+        await uninstallFlash();
+    }
+    catch (e) { }
     await electronSets.set("flash.currentVersion", version);
     await electronSets.set("flash.path", filename);
 }
 async function uninstallFlash() {
-    if (is_installing) {
-        throw "Installation is still in progress.";
-    }
-    is_installing = true;
-    await electronSets.set("flash.uninstall", true);
+    var uninstall_paths = await electronSets.get("flash.uninstall") || [];
+    var fpath = await electronSets.get("flash.path");
+    var version = await electronSets.get("flash.currentVersion");
+    if (!fpath || !version)
+        throw "No Flash installation is detected";
+    uninstall_paths.push({
+        path: fpath,
+        version: version
+    });
+    await electronSets.unset("flash.path");
+    await electronSets.unset("flash.currentVersion");
+    await electronSets.set("flash.uninstall", uninstall_paths);
 }
 function initIpc() {
     electron_1.ipcMain.on("flash-release", (event) => {
@@ -106,6 +131,10 @@ function initIpc() {
         }).catch();
     });
     electron_1.ipcMain.on("install-flash", (event, version) => {
+        if (is_installing) {
+            event.reply("uninstall-flash-error", "Installation is still in progress.");
+            return;
+        }
         installFlash(version).then(() => {
             is_installing = false;
             event.reply("install-flash-success");
@@ -115,6 +144,11 @@ function initIpc() {
         });
     });
     electron_1.ipcMain.on("uninstall-flash", (event) => {
+        if (is_installing) {
+            event.reply("uninstall-flash-error", "Installation is still in progress.");
+            return;
+        }
+        is_installing = true;
         uninstallFlash().then(() => {
             is_installing = false;
             event.reply("uninstall-flash-success");
@@ -125,3 +159,33 @@ function initIpc() {
     });
 }
 exports.initIpc = initIpc;
+function uninstallFlashWorker() {
+    var uninstalls = electronSets.getSync("flash.uninstall");
+    if (Array.isArray(uninstalls)) {
+        for (let i = 0; i < uninstalls.length; i++) {
+            var fpath = path.join(electron_1.app.getPath("userData"), uninstalls[i].path);
+            if (fs_1.existsSync(fpath)) {
+                try {
+                    fs_1.unlinkSync(fpath);
+                }
+                catch (e) {
+                    console.error(`Could not delete file ${uninstalls[i].path}: ${e}`);
+                    continue;
+                }
+            }
+            console.log(`Uninstalled ${uninstalls[i].version}`);
+            uninstalls[i] = null;
+        }
+        uninstalls = uninstalls.filter(x => x);
+        if (uninstalls.length > 0) {
+            electronSets.setSync("flash.uninstall", uninstalls);
+        }
+        else {
+            electronSets.unsetSync("flash.uninstall");
+        }
+    }
+    else if (uninstalls) {
+        electronSets.unsetSync("flash.uninstall");
+    }
+}
+exports.uninstallFlashWorker = uninstallFlashWorker;

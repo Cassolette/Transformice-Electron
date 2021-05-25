@@ -1,10 +1,10 @@
 import { app, ipcMain } from "electron";
-import * as electronSets from "electron-settings";
 import { FlashReleaseConfig } from "./release_config";
-import { ESettingsFlash } from "./flash_settings";
+import { ESettingsFlash, ESettingsFlashUninstall } from "./flash_settings";
 import { createWriteStream, existsSync, unlinkSync } from "fs";
 import { pipeline } from "stream";
 import { promisify } from "util";
+import * as electronSets from "electron-settings";
 import * as path from "path";
 import * as url from "url";
 import fetch from "node-fetch";
@@ -69,10 +69,26 @@ async function getReleasePerPlatform()  {
  * @throws On error
  */
 async function installFlash(version : string) {
-    if (is_installing) {
-        throw "Installation is still in progress.";
+    // Check if an uninstallation for this version was scheduled; If so, undo it
+    var uninstalls = electronSets.getSync("flash.uninstall") as ESettingsFlash['uninstall'];
+    if (Array.isArray(uninstalls)) {
+        let found_uninstall = null;
+        for (let i = 0; i < uninstalls.length; i++) {
+            if (uninstalls[i].version == version) {
+                // Undo the uninstallation
+                await electronSets.set("flash.currentVersion", version);
+                await electronSets.set("flash.path", uninstalls[i].path);
+                uninstalls.splice(i);
+                if (uninstalls.length > 0) {
+                    // Save the new array
+                    electronSets.setSync("flash.uninstall", uninstalls);
+                } else {
+                    electronSets.unsetSync("flash.uninstall");
+                }
+                return;
+            }
+        }
     }
-    is_installing = true;
 
     var releases = (await getReleasePerPlatform()).releases;
     var rel = null;
@@ -94,6 +110,12 @@ async function installFlash(version : string) {
     var stream = createWriteStream(path.join(app.getPath("userData"), filename));
     await streamPipeline(response.body, stream);
 
+    // Uninstall the old version
+    try {
+        await uninstallFlash();
+    } catch (e) {}
+
+    // Link to the new version
     await electronSets.set("flash.currentVersion", version);
     await electronSets.set("flash.path", filename);
 }
@@ -103,20 +125,16 @@ async function installFlash(version : string) {
  * @throws On error
  */
 async function uninstallFlash() {
-    if (is_installing) {
-        throw "Installation is still in progress.";
-    }
-    is_installing = true;
-
-    var uninstall_paths : string[];
-    var fpath : string | null;
-
-    uninstall_paths = await
+    var uninstall_paths = await
             electronSets.get("flash.uninstall") as ESettingsFlash['uninstall'] || [];
-    fpath = await electronSets.get("flash.path") as ESettingsFlash['path'];
+    var fpath = await electronSets.get("flash.path") as ESettingsFlash['path'];
+    var version = await electronSets.get("flash.currentVersion") as ESettingsFlash['currentVersion'];
 
-    if (!fpath) throw "No Flash installation is detected";
-    uninstall_paths.push(fpath);
+    if (!fpath || !version) throw "No Flash installation is detected";
+    uninstall_paths.push({
+        path: fpath,
+        version: version
+    });
 
     await electronSets.unset("flash.path");
     await electronSets.unset("flash.currentVersion");
@@ -136,6 +154,10 @@ export function initIpc() {
 
     // Trigger Flash installation
     ipcMain.on("install-flash", (event, version) => {
+        if (is_installing) {
+            event.reply("uninstall-flash-error", "Installation is still in progress.");
+            return;
+        }
         installFlash(version).then(() => {
             is_installing = false;
             event.reply("install-flash-success");
@@ -147,6 +169,11 @@ export function initIpc() {
 
     // Trigger Flash removal
     ipcMain.on("uninstall-flash", (event) => {
+        if (is_installing) {
+            event.reply("uninstall-flash-error", "Installation is still in progress.");
+            return;
+        }
+        is_installing = true;
         uninstallFlash().then(() => {
             is_installing = false;
             event.reply("uninstall-flash-success");
@@ -162,33 +189,33 @@ export function initIpc() {
  * is most likely to not be locking the plugins (such as at init or exit). 
  */
 export function uninstallFlashWorker() {
-    var uninstall_paths = electronSets.getSync("flash.uninstall") as ESettingsFlash['uninstall'];
-    if (Array.isArray(uninstall_paths)) {
+    var uninstalls = electronSets.getSync("flash.uninstall") as ESettingsFlash['uninstall'];
+    if (Array.isArray(uninstalls)) {
         // Uninstall was scheduled
-        for (let i = 0; i < uninstall_paths.length; i++) {
-            var fpath = path.join(app.getPath("userData"), uninstall_paths[i]);
+        for (let i = 0; i < uninstalls.length; i++) {
+            var fpath = path.join(app.getPath("userData"), uninstalls[i].path);
             if (existsSync(fpath)) {
                 try {
                     unlinkSync(fpath);
                 } catch (e) {
                     // Most likely being locked
-                    console.error(`Could not delete file ${uninstall_paths[i]}: ${e}`);
+                    console.error(`Could not delete file ${uninstalls[i].path}: ${e}`);
                     continue;
                 }
             }
-            uninstall_paths[i] = null;
-            console.log(`Uninstalled ${uninstall_paths[i]}`);
+            console.log(`Uninstalled ${uninstalls[i].version}`);
+            uninstalls[i] = null;
         }
 
         // Compact the array
-        uninstall_paths = uninstall_paths.filter(x => x);
-        if (uninstall_paths.length > 0) {
+        uninstalls = uninstalls.filter(x => x);
+        if (uninstalls.length > 0) {
             // Save the new array
-            electronSets.setSync("flash.uninstall", uninstall_paths);
+            electronSets.setSync("flash.uninstall", uninstalls);
         } else {
             electronSets.unsetSync("flash.uninstall");
         }
-    } else if (uninstall_paths) {
+    } else if (uninstalls) {
         // Invalid setting
         electronSets.unsetSync("flash.uninstall");
     }

@@ -1,3 +1,14 @@
+export type ESettingsFlashUninstall = {
+    /**
+     * Relative path to the Flash plugin library
+     */
+     path: string;
+     /**
+      * Version identifier for the Flash plugin
+      */
+     version: string;
+}
+
 export type ESettingsFlash = {
     /**
      * Whether downloaded Flash is enabled
@@ -14,5 +25,5 @@ export type ESettingsFlash = {
     /**
      * An array of paths to remove
      */
-    uninstall: string[]?;
+    uninstall: ESettingsFlashUninstall[]?;
 }

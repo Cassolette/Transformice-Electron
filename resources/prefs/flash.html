@@ -106,7 +106,8 @@
             </div>
             <div class="flex-inner">
                 <label for="install_versions">Choose install version</label>
-                <select id="install_versions">
+                <select id="install_versions" disabled>
+                    <option selected>Retrieving downloads list ...</option>
                 </select>
             </div>
             <div class="flex-inner2">
@@ -167,6 +168,7 @@
 
                 electron.uninstallFlash().on('success', () => {
                     el.innerText = "Uninstall";
+                    el.disabled = false;
                     el.hidden = true;
                     installed_version.innerText = "None";
                 }).on('error', (err) => {
@@ -179,6 +181,8 @@
             // Append options
             electron.getFlashReleases().then((rels) => {
                 var latest_ver = rels.latest;
+                install_dropdown.textContent = "";
+                install_dropdown.disabled = false;
                 rels.releases.forEach((rel) => {
                     install_dropdown.append(new Option(rel.name, rel.version));
                 }); 
