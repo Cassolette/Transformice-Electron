@@ -1,11 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeGames = void 0;
-/**
- * Enumerates the different 801 games
- * @readonly
- * @enum { TeGames }
- */
 var TeGames;
 (function (TeGames) {
     TeGames[TeGames["TRANSFORMICE"] = 1] = "TRANSFORMICE";

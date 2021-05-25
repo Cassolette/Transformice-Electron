@@ -31,10 +31,8 @@ class WindowTransformice extends TeWindow_1.TeWindow {
         this.windowBgColor = "#6A7495";
         this.windowWidth = 800;
         this.windowHeight = 600;
-        /* TODO: Find out if class properties can be overriden before constructor() is called.. */
         this._constructor(httpUrl);
         let _this = this;
-        /* TFM Fullscreen event */
         electron_1.ipcMain.on("tfm-fullscreen-mode", (event, mode) => {
             let bwin = _this.browserWindow;
             if (bwin.webContents.id == event.sender.id) {
@@ -48,7 +46,6 @@ class WindowTransformice extends TeWindow_1.TeWindow {
         });
     }
     load() {
-        /* Read alignment prefs */
         let align = electronSets.getSync("general.align") || "";
         let spl = align.split(",");
         if (spl.length >= 2) {
@@ -73,7 +70,7 @@ class WindowTransformice extends TeWindow_1.TeWindow {
             align = y + x;
         }
         else {
-            console.log("corrupt align prefs : " + align + electronSets.file());
+            console.error("corrupt align prefs : " + align + electronSets.file());
         }
         this.browserWindow.loadURL(this.httpUrl + PATH_URL_TRANSFORMICE + "?align=" + align);
     }

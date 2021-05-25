@@ -32,16 +32,12 @@ const FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
 const FILE_URL_PREFS = FILE_BASE + "/resources/prefs/prefs.html";
 class TeWindow {
     constructor() {
-        /** The description of the last error that happened */
         this.errorDesc = "";
         this.windowTitle = te_consts_1.APP_NAME;
         this.windowBgColor = "#000000";
-        /** The window's content width */
         this.windowWidth = 800;
-        /** The window's content height */
         this.windowHeight = 600;
     }
-    /* TODO: Find out if class properties can be overriden before constructor() is called.. */
     _constructor(httpUrl) {
         this.httpUrl = httpUrl;
         let bwin = new electron_1.BrowserWindow({
@@ -65,7 +61,6 @@ class TeWindow {
                 label: 'Zoom In',
                 click: () => {
                     var webContents = bwin.webContents;
-                    /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 + 10) / 100;
                     webContents.setZoomFactor(zoomFactor);
                 }
@@ -74,7 +69,6 @@ class TeWindow {
                 label: 'Zoom Out',
                 click: () => {
                     var webContents = bwin.webContents;
-                    /* JS messes up when doing arithmetics against floats */
                     var zoomFactor = Math.round(webContents.getZoomFactor() * 100 - 10) / 100;
                     if (zoomFactor > 0)
                         webContents.setZoomFactor(zoomFactor);
@@ -96,7 +90,6 @@ class TeWindow {
                         click: () => {
                             this.load();
                             te_server_1.testHttpServer(this.httpUrl).catch(() => {
-                                // Something went wrong with the server, unload the page and grab a new one
                                 this.browserWindow.loadURL("data:text/plain,");
                                 te_server_1.retrieveServer().then((httpUrl) => {
                                     this.httpUrl = httpUrl;
@@ -190,17 +183,14 @@ class TeWindow {
         bwin.webContents.on('did-fail-load', (event, errCode, errDesc) => {
             _this.onFail(errDesc);
         });
-        /* Open external links in user's preferred browser rather than in Electron */
         bwin.webContents.on('new-window', (event, url) => {
             event.preventDefault();
             electron_1.shell.openExternal(url);
         });
-        /* Don't change the window title */
         bwin.on('page-title-updated', (event) => {
             event.preventDefault();
         });
         this.browserWindow = bwin;
-        /* Get error from loading */
         electron_1.ipcMain.on("send-te-error", (event) => {
             if (bwin.webContents.id == event.sender.id) {
                 event.reply("send-te-error", _this.errorDesc);
@@ -212,13 +202,11 @@ class TeWindow {
         let bwin = this.browserWindow;
         if (!bwin.isDestroyed()) {
             bwin.loadURL(FILE_URL_FAILURE);
-            //win.show();
         }
         this.errorDesc = errDesc;
     }
     showPreferences() {
         if (this.prefsWin) {
-            /* already open - focus and bail out */
             this.prefsWin.focus();
             return;
         }

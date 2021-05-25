@@ -6,7 +6,6 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import * as path from "path";
 import * as url from "url";
-import * as http from "http";
 import fetch from "node-fetch";
 
 const RELEASE_CONFIG = "https://raw.githubusercontent.com/Cassolette/flash-binaries/master/release.json";

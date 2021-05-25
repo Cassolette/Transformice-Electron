@@ -22,7 +22,6 @@ class ArgpArgFlag extends ArgpArg {
         return this.value != null && this.value.includes(" ");
     }
 }
-/** Simple Chromium v8 cmdline parser */
 class ArgpObject {
     constructor(argv) {
         this.args = [];
@@ -46,11 +45,9 @@ class ArgpObject {
     setFlag(name, value) {
         let f;
         if (f = this.flagsDict[name]) {
-            // Existing
             f.value = value;
         }
         else {
-            // Append
             let f = new ArgpArgFlag;
             f.name = name;
             f.value = value;

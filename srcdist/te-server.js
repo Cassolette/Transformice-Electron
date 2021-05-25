@@ -28,17 +28,11 @@ const http = __importStar(require("http"));
 const BASE_DIR = path.join(__dirname, "..");
 const SERVER_URL_FILE = path.join(electron_1.app.getPath("userData"), "server.te");
 const SERVER_TEST_PATH = "/TeServerTest";
-/**
- * Set up a local HTTP webserver which will respond with contents in /resources directory.
- * This is needed because flash refuses to send ExternalInterface calls when loading the
- * page directly from file://
- */
 async function startHttpServer() {
     var server = http.createServer((req, res) => {
         var urlobj = url.parse(req.url);
         var pathname = urlobj.pathname;
         res.setTimeout(5000);
-        /* Connectivity test */
         if (pathname == SERVER_TEST_PATH) {
             res.writeHead(200);
             res.end(SERVER_TEST_PATH);
@@ -56,21 +50,15 @@ async function startHttpServer() {
             }
         });
     });
-    /* Get an available port */
     const port = await require("get-port")();
     server.listen(port);
-    /* Disable TCP delay */
     server.on("connection", (socket) => {
         socket.setNoDelay(true);
     });
-    /* Signal HTTP server ready */
     return "http://localhost:" + port;
 }
 exports.startHttpServer = startHttpServer;
 ;
-/**
- * Tests if the specified local HTTP webserver is working.
- */
 async function testHttpServer(httpUrl) {
     return new Promise((resolve, reject) => {
         http.get(httpUrl + SERVER_TEST_PATH, { timeout: 100 }, (resp) => {
@@ -88,16 +76,11 @@ async function testHttpServer(httpUrl) {
     });
 }
 exports.testHttpServer = testHttpServer;
-/**
- * Retrieves a working HTTP server with checks to re-use any existing servers before starting a new one.
- * @param forceStart - Whether to perform the checks or simply start a new server
- */
 async function retrieveServer(forceStart) {
     let stored_url = null;
     if (!forceStart) {
         try {
             let server_url = fs.readFileSync(SERVER_URL_FILE).toString();
-            // Test if this server responds
             if (await testHttpServer(server_url)) {
                 stored_url = server_url;
             }
@@ -110,7 +93,6 @@ async function retrieveServer(forceStart) {
     }
     else {
         let http_url = await startHttpServer();
-        // Store the current HTTP url asynchronously
         fs.writeFile(SERVER_URL_FILE, http_url, (err) => {
             if (err) {
                 console.error("Failed to save TE server URL.");

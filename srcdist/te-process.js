@@ -29,7 +29,7 @@ function newTEProcess(gameId) {
     let child_proc = proc.spawn(argv[0], argv.slice(1), {
         detached: true,
         stdio: 'inherit',
-        windowsHide: false // We want to show the window, duh.
+        windowsHide: false
     });
     child_proc.unref();
 }

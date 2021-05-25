@@ -57,7 +57,7 @@ export class WindowTransformice extends TeWindow {
 
             align = y + x;
         } else {
-            console.log("corrupt align prefs : " + align + electronSets.file());
+            console.error("corrupt align prefs : " + align + electronSets.file());
         }
 
         this.browserWindow.loadURL(this.httpUrl + PATH_URL_TRANSFORMICE + "?align=" + align);

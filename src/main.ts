@@ -1,14 +1,14 @@
 import { app } from "electron";
 import { TeGames } from "./te-enums";
+import { TeWindow } from "./TeWindow";
 import { WindowTransformice } from "./WindowTransformice";
-import { retrieveServer } from "./te-server";
 import { WindowDeadMaze } from "./WindowDeadMaze";
-import { initIpc } from "./flashrel/init_ipc";
+import { retrieveServer } from "./te-server";
+import { initIpc } from "./flashrel/flashrel";
 import { ArgpObject } from "./argparser";
-import { unlink } from "fs";
+import { unlinkSync } from "fs";
 import * as electronSets from "electron-settings";
 import * as path from "path";
-import { unlinkSync } from "original-fs";
 
 const BASE_DIR = path.join(__dirname, "..");
 
@@ -44,7 +44,12 @@ module readyHandler {
     }
 }
 
-async function processCustomFlashPlugin() : Promise<boolean> {
+/**
+ * Reads settings to determine if downloaded Flash should be used. Also performs
+ * scheduled uninstallation if any.
+ * @returns Whether downloaded Flash is being used
+ */
+function processCustomFlashPlugin() : boolean {
     if (electronSets.getSync("flash.uninstall")) {
         // Uninstall was scheduled
         let rel_path = electronSets.getSync("flash.path") as string;
@@ -80,11 +85,13 @@ async function processCustomFlashPlugin() : Promise<boolean> {
     return false;
 }
 
-/** Adds the flash plugin path to the chromium cmdline */
-async function addFlashPlugin() {
+/**
+ * Adds the flash plugin path to the chromium cmdline
+ */
+function addFlashPlugin() {
     var use_custom = false;
     try {
-        use_custom = await processCustomFlashPlugin();
+        use_custom = processCustomFlashPlugin();
     } catch (e) {
         console.error(e);
     }
@@ -109,12 +116,16 @@ async function addFlashPlugin() {
 
     console.log(pluginName || "No plugin found.");
 
-    /* Flash plugin can only be loaded when unpacked. */
+    // Flash plugin can only be loaded when unpacked.
     app.commandLine.appendSwitch('ppapi-flash-path', path.join(BASE_DIR, "flash-plugin", iden, pluginName)
         .replace('app.asar', 'app.asar.unpacked'));
 }
 
-function createWindow(gameType: TeGames, httpUrl: string) {
+/**
+ * Creates a game window.
+ * @returns The game window
+ */
+function createWindow(gameType: TeGames, httpUrl: string) : TeWindow {
     switch (gameType) {
         case TeGames.TRANSFORMICE:
             return new WindowTransformice(httpUrl);
@@ -126,11 +137,13 @@ function createWindow(gameType: TeGames, httpUrl: string) {
 }
 
 /* Start things up */
-(async function () {
+(function() {
     var instance_lock = app.requestSingleInstanceLock();
     var argp = new ArgpObject(process.argv);
 
-    await addFlashPlugin();
+    addFlashPlugin();
+
+    // Register callbacks
     app.whenReady().then(readyHandler.appReady);
     // First instance: No need to check for existing server URLs
     // Secondary instance: Try to read for any existing server URL stored

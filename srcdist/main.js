@@ -22,15 +22,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const te_enums_1 = require("./te-enums");
 const WindowTransformice_1 = require("./WindowTransformice");
-const te_server_1 = require("./te-server");
 const WindowDeadMaze_1 = require("./WindowDeadMaze");
-const init_ipc_1 = require("./flashrel/init_ipc");
+const te_server_1 = require("./te-server");
+const flashrel_1 = require("./flashrel/flashrel");
 const argparser_1 = require("./argparser");
+const fs_1 = require("fs");
 const electronSets = __importStar(require("electron-settings"));
 const path = __importStar(require("path"));
-const original_fs_1 = require("original-fs");
 const BASE_DIR = path.join(__dirname, "..");
-/* Fire a combined ready event when both app and server are ready */
 var readyHandler;
 (function (readyHandler) {
     var http_ready = false;
@@ -52,23 +51,19 @@ var readyHandler;
         fire();
     }
     readyHandler.appReady = appReady;
-    /**
-     * Called after both the app and server are ready.
-     */
     function afterReady(cb) {
         callback = cb;
         fire();
     }
     readyHandler.afterReady = afterReady;
 })(readyHandler || (readyHandler = {}));
-async function processCustomFlashPlugin() {
+function processCustomFlashPlugin() {
     if (electronSets.getSync("flash.uninstall")) {
-        // Uninstall was scheduled
         let rel_path = electronSets.getSync("flash.path");
         if (rel_path) {
             var fpath = path.join(electron_1.app.getPath("userData"), rel_path);
             try {
-                original_fs_1.unlinkSync(fpath);
+                fs_1.unlinkSync(fpath);
             }
             catch (e) {
                 throw `Could not delete file ${rel_path}: ${e}`;
@@ -84,7 +79,6 @@ async function processCustomFlashPlugin() {
         }
     }
     if (electronSets.getSync("flash.enable")) {
-        // Custom flash
         let rel_path = electronSets.getSync("flash.path");
         if (rel_path) {
             let fullpath = path.join(electron_1.app.getPath("userData"), rel_path);
@@ -95,11 +89,10 @@ async function processCustomFlashPlugin() {
     }
     return false;
 }
-/** Adds the flash plugin path to the chromium cmdline */
-async function addFlashPlugin() {
+function addFlashPlugin() {
     var use_custom = false;
     try {
-        use_custom = await processCustomFlashPlugin();
+        use_custom = processCustomFlashPlugin();
     }
     catch (e) {
         console.error(e);
@@ -123,7 +116,6 @@ async function addFlashPlugin() {
             break;
     }
     console.log(pluginName || "No plugin found.");
-    /* Flash plugin can only be loaded when unpacked. */
     electron_1.app.commandLine.appendSwitch('ppapi-flash-path', path.join(BASE_DIR, "flash-plugin", iden, pluginName)
         .replace('app.asar', 'app.asar.unpacked'));
 }
@@ -137,24 +129,19 @@ function createWindow(gameType, httpUrl) {
             return new WindowTransformice_1.WindowTransformice(httpUrl);
     }
 }
-/* Start things up */
-(async function () {
+(function () {
     var instance_lock = electron_1.app.requestSingleInstanceLock();
     var argp = new argparser_1.ArgpObject(process.argv);
-    await addFlashPlugin();
+    addFlashPlugin();
     electron_1.app.whenReady().then(readyHandler.appReady);
-    // First instance: No need to check for existing server URLs
-    // Secondary instance: Try to read for any existing server URL stored
     te_server_1.retrieveServer(instance_lock).then(readyHandler.httpServerReady);
-    init_ipc_1.initIpc();
-    // All ready!
+    flashrel_1.initIpc();
     readyHandler.afterReady((httpUrl) => {
         let gameId = te_enums_1.TeGames.TRANSFORMICE;
         let id;
         if (id = argp.getFlag("game-id")) {
             id = +id;
             if (Object.values(te_enums_1.TeGames).includes(id)) {
-                // The ID is valid and exists in the enums
                 gameId = id;
             }
         }
