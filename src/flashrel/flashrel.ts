@@ -1,12 +1,13 @@
 import { app, ipcMain } from "electron";
 import { FlashReleaseConfig } from "./release_config";
 import { ESettingsFlash, ESettingsFlashUninstall } from "./flash_settings";
-import { createWriteStream, existsSync, unlinkSync } from "fs";
+import { createWriteStream, existsSync, unlinkSync, promises as fsPromises } from "fs";
 import { pipeline } from "stream";
 import { promisify } from "util";
 import * as electronSets from "electron-settings";
 import * as path from "path";
 import * as url from "url";
+import * as tar from "tar";
 import fetch from "node-fetch";
 
 const RELEASE_CONFIG = "https://raw.githubusercontent.com/Cassolette/flash-binaries/master/release.json";
@@ -45,10 +46,6 @@ async function getReleasePerPlatform()  {
     var rel_config = await getReleaseConfig();
     var fplatform = MAP_TO_FPLATFORM[process.platform];
     var freleases : ReleasePerPlatform[] = [];
-
-    if (process.platform == "darwin") {
-        throw `MacOS not supported yet`;  // TODO: support macos
-    }
 
     rel_config[fplatform].releases.forEach((rel) => {
         freleases.push({
@@ -103,12 +100,35 @@ async function installFlash(version : string) {
     if (!rel) throw `No such version found.`;
 
     var filename = path.basename(url.parse(rel.url).pathname);
+    var file_ext = path.extname(filename);
+    var absolute_file = path.join(app.getPath("userData"), filename);
 
     var streamPipeline = promisify(pipeline);
     var response = await fetch(rel.url);
     if (!response.ok) throw `Unexpected response ${response.statusText}`;
-    var stream = createWriteStream(path.join(app.getPath("userData"), filename));
+    var stream = createWriteStream(absolute_file);
     await streamPipeline(response.body, stream);
+
+    if (file_ext == ".tar") {
+        // On MacOS, we untar the archive
+        let plugin_path = path.join(app.getPath("userData"), `PepperFlash.${version}.plugin`);
+
+        try {
+            await fsPromises.access(plugin_path);
+            await fsPromises.rmdir(plugin_path, { recursive: true });
+        } catch (e) {
+            // Directory does not exist probably
+        }
+        await fsPromises.mkdir(plugin_path);
+
+        // Extract tar to `plugin_path`
+        tar.x({
+            file: absolute_file,
+            cwd: plugin_path
+        });
+
+        filename = plugin_path;
+    }
 
     // Uninstall the old version
     try {

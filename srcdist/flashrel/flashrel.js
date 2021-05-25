@@ -30,6 +30,7 @@ const util_1 = require("util");
 const electronSets = __importStar(require("electron-settings"));
 const path = __importStar(require("path"));
 const url = __importStar(require("url"));
+const tar = __importStar(require("tar"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const RELEASE_CONFIG = "https://raw.githubusercontent.com/Cassolette/flash-binaries/master/release.json";
 var is_installing = false;
@@ -51,9 +52,6 @@ async function getReleasePerPlatform() {
     var rel_config = await getReleaseConfig();
     var fplatform = MAP_TO_FPLATFORM[process.platform];
     var freleases = [];
-    if (process.platform == "darwin") {
-        throw `MacOS not supported yet`;
-    }
     rel_config[fplatform].releases.forEach((rel) => {
         freleases.push({
             version: rel.version,
@@ -97,12 +95,29 @@ async function installFlash(version) {
     if (!rel)
         throw `No such version found.`;
     var filename = path.basename(url.parse(rel.url).pathname);
+    var file_ext = path.extname(filename);
+    var absolute_file = path.join(electron_1.app.getPath("userData"), filename);
     var streamPipeline = util_1.promisify(stream_1.pipeline);
     var response = await node_fetch_1.default(rel.url);
     if (!response.ok)
         throw `Unexpected response ${response.statusText}`;
-    var stream = fs_1.createWriteStream(path.join(electron_1.app.getPath("userData"), filename));
+    var stream = fs_1.createWriteStream(absolute_file);
     await streamPipeline(response.body, stream);
+    if (file_ext == ".tar") {
+        let plugin_path = path.join(electron_1.app.getPath("userData"), `PepperFlash.${version}.plugin`);
+        try {
+            await fs_1.promises.access(plugin_path);
+            await fs_1.promises.rmdir(plugin_path, { recursive: true });
+        }
+        catch (e) {
+        }
+        await fs_1.promises.mkdir(plugin_path);
+        tar.x({
+            file: absolute_file,
+            cwd: plugin_path
+        });
+        filename = plugin_path;
+    }
     try {
         await uninstallFlash();
     }
