@@ -150,6 +150,7 @@ function initIpc() {
             event.reply("uninstall-flash-error", "Installation is still in progress.");
             return;
         }
+        is_installing = true;
         installFlash(version).then(() => {
             is_installing = false;
             event.reply("install-flash-success");
