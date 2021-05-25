@@ -4,9 +4,8 @@ import { TeWindow } from "./TeWindow";
 import { WindowTransformice } from "./WindowTransformice";
 import { WindowDeadMaze } from "./WindowDeadMaze";
 import { retrieveServer } from "./te-server";
-import { initIpc } from "./flashrel/flashrel";
+import { initIpc, uninstallFlashWorker } from "./flashrel/flashrel";
 import { ArgpObject } from "./argparser";
-import { unlinkSync } from "fs";
 import * as electronSets from "electron-settings";
 import * as path from "path";
 
@@ -50,38 +49,17 @@ module readyHandler {
  * @returns Whether downloaded Flash is being used
  */
 function processCustomFlashPlugin() : boolean {
-    if (electronSets.getSync("flash.uninstall")) {
-        // Uninstall was scheduled
-        let rel_path = electronSets.getSync("flash.path") as string;
-        if (rel_path) {
-            var fpath = path.join(app.getPath("userData"), rel_path);
-            try {
-                unlinkSync(fpath);
-            } catch (e) {
-                throw `Could not delete file ${rel_path}: ${e}`;
-            }
-            electronSets.unsetSync("flash.currentVersion");
-            electronSets.unsetSync("flash.path");
-            electronSets.unsetSync("flash.uninstall");
-            console.log(`Uninstalled ${rel_path}`);
-            return false;
-        } else {
-            electronSets.unsetSync("flash.uninstall");
-        }
-    }
-
+    uninstallFlashWorker();
     if (electronSets.getSync("flash.enable")) {
         // Custom flash
         let rel_path = electronSets.getSync("flash.path") as string;
         if (rel_path) {
             let fullpath = path.join(app.getPath("userData"), rel_path);
             app.commandLine.appendSwitch('ppapi-flash-path', fullpath);
-
             console.log("Loading downloaded Flash", rel_path);
             return true;
         }
     }
-
     return false;
 }
 

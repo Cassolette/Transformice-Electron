@@ -1,7 +1,8 @@
 import { app, ipcMain } from "electron";
 import * as electronSets from "electron-settings";
 import { FlashReleaseConfig } from "./release_config";
-import { createWriteStream } from "fs";
+import { ESettingsFlash } from "./flash_settings";
+import { createWriteStream, existsSync, unlinkSync } from "fs";
 import { pipeline } from "stream";
 import { promisify } from "util";
 import * as path from "path";
@@ -106,7 +107,20 @@ async function uninstallFlash() {
         throw "Installation is still in progress.";
     }
     is_installing = true;
-    await electronSets.set("flash.uninstall", true);
+
+    var uninstall_paths : string[];
+    var fpath : string | null;
+
+    uninstall_paths = await
+            electronSets.get("flash.uninstall") as ESettingsFlash['uninstall'] || [];
+    fpath = await electronSets.get("flash.path") as ESettingsFlash['path'];
+
+    if (!fpath) throw "No Flash installation is detected";
+    uninstall_paths.push(fpath);
+
+    await electronSets.unset("flash.path");
+    await electronSets.unset("flash.currentVersion");
+    await electronSets.set("flash.uninstall", uninstall_paths);
 }
 
 /**
@@ -141,4 +155,41 @@ export function initIpc() {
             event.reply("uninstall-flash-error", err);
         });
     });
+}
+
+/**
+ * Uninstalls any scheduled Flash removals. This should be called where your application
+ * is most likely to not be locking the plugins (such as at init or exit). 
+ */
+export function uninstallFlashWorker() {
+    var uninstall_paths = electronSets.getSync("flash.uninstall") as ESettingsFlash['uninstall'];
+    if (Array.isArray(uninstall_paths)) {
+        // Uninstall was scheduled
+        for (let i = 0; i < uninstall_paths.length; i++) {
+            var fpath = path.join(app.getPath("userData"), uninstall_paths[i]);
+            if (existsSync(fpath)) {
+                try {
+                    unlinkSync(fpath);
+                } catch (e) {
+                    // Most likely being locked
+                    console.error(`Could not delete file ${uninstall_paths[i]}: ${e}`);
+                    continue;
+                }
+            }
+            uninstall_paths[i] = null;
+            console.log(`Uninstalled ${uninstall_paths[i]}`);
+        }
+
+        // Compact the array
+        uninstall_paths = uninstall_paths.filter(x => x);
+        if (uninstall_paths.length > 0) {
+            // Save the new array
+            electronSets.setSync("flash.uninstall", uninstall_paths);
+        } else {
+            electronSets.unsetSync("flash.uninstall");
+        }
+    } else if (uninstall_paths) {
+        // Invalid setting
+        electronSets.unsetSync("flash.uninstall");
+    }
 }
