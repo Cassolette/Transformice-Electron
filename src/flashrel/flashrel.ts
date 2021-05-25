@@ -63,6 +63,10 @@ async function getReleasePerPlatform()  {
     }
 }
 
+/**
+ * Downloads and installs the given flash version
+ * @throws On error
+ */
 async function installFlash(version : string) {
     if (is_installing) {
         throw "Installation is still in progress.";
@@ -85,49 +89,55 @@ async function installFlash(version : string) {
 
     var streamPipeline = promisify(pipeline);
     var response = await fetch(rel.url);
-    if (!response.ok) throw `unexpected response ${response.statusText}`;
+    if (!response.ok) throw `Unexpected response ${response.statusText}`;
     var stream = createWriteStream(path.join(app.getPath("userData"), filename));
     await streamPipeline(response.body, stream);
 
     await electronSets.set("flash.currentVersion", version);
     await electronSets.set("flash.path", filename);
-
-    is_installing = false;
 }
 
+/**
+ * Schedules the removal of currently installed Flash version
+ * @throws On error
+ */
 async function uninstallFlash() {
     if (is_installing) {
         throw "Installation is still in progress.";
     }
     is_installing = true;
-
     await electronSets.set("flash.uninstall", true);
-
-    is_installing = false;
 }
 
 /**
  * Register IPC callbacks for the preferences window.
  */
 export function initIpc() {
+    // Query Flash releases per platform
     ipcMain.on("flash-release", (event) => {
         getReleasePerPlatform().then((obj) => {
             event.reply("flash-release", obj);
         }).catch();
     });
 
+    // Trigger Flash installation
     ipcMain.on("install-flash", (event, version) => {
         installFlash(version).then(() => {
+            is_installing = false;
             event.reply("install-flash-success");
         }).catch((err) => {
+            is_installing = false;
             event.reply("install-flash-error", err);
         });
     });
 
+    // Trigger Flash removal
     ipcMain.on("uninstall-flash", (event) => {
         uninstallFlash().then(() => {
+            is_installing = false;
             event.reply("uninstall-flash-success");
         }).catch((err) => {
+            is_installing = false;
             event.reply("uninstall-flash-error", err);
         });
     });

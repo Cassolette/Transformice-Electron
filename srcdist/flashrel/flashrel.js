@@ -86,12 +86,11 @@ async function installFlash(version) {
     var streamPipeline = util_1.promisify(stream_1.pipeline);
     var response = await node_fetch_1.default(rel.url);
     if (!response.ok)
-        throw `unexpected response ${response.statusText}`;
+        throw `Unexpected response ${response.statusText}`;
     var stream = fs_1.createWriteStream(path.join(electron_1.app.getPath("userData"), filename));
     await streamPipeline(response.body, stream);
     await electronSets.set("flash.currentVersion", version);
     await electronSets.set("flash.path", filename);
-    is_installing = false;
 }
 async function uninstallFlash() {
     if (is_installing) {
@@ -99,7 +98,6 @@ async function uninstallFlash() {
     }
     is_installing = true;
     await electronSets.set("flash.uninstall", true);
-    is_installing = false;
 }
 function initIpc() {
     electron_1.ipcMain.on("flash-release", (event) => {
@@ -109,15 +107,19 @@ function initIpc() {
     });
     electron_1.ipcMain.on("install-flash", (event, version) => {
         installFlash(version).then(() => {
+            is_installing = false;
             event.reply("install-flash-success");
         }).catch((err) => {
+            is_installing = false;
             event.reply("install-flash-error", err);
         });
     });
     electron_1.ipcMain.on("uninstall-flash", (event) => {
         uninstallFlash().then(() => {
+            is_installing = false;
             event.reply("uninstall-flash-success");
         }).catch((err) => {
+            is_installing = false;
             event.reply("uninstall-flash-error", err);
         });
     });

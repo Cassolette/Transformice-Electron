@@ -18,30 +18,34 @@ window.electron = {
     },
     installFlash: (version) => {
         var emitter = new EventEmitter();
-        ipcRenderer.send("install-flash", version);
-        var on_progress = (_, prog) => {
-            emitter.emit('progress', prog);
-        };
-        ipcRenderer.on("install-flash-progress", on_progress);
-        ipcRenderer.once("install-flash-error", (_, msg) => {
-            ipcRenderer.removeListener("install-flash-progress", on_progress);
+        var cb_error, cb_success;
+
+        ipcRenderer.once("install-flash-error", cb_error = (_, msg) => {
+            ipcRenderer.removeListener("install-flash-success", cb_success);
             emitter.emit('error', msg);
         });
-        ipcRenderer.once("install-flash-success", () => {
-            ipcRenderer.removeListener("install-flash-progress", on_progress);
+        ipcRenderer.once("install-flash-success", cb_success = () => {
+            ipcRenderer.removeListener("install-flash-error", cb_error);
             emitter.emit('success');
         });
+
+        ipcRenderer.send("install-flash", version);
         return emitter;
     },
     uninstallFlash: () => {
         var emitter = new EventEmitter();
-        ipcRenderer.send("uninstall-flash");
-        ipcRenderer.once("uninstall-flash-error", (_, msg) => {
+        var cb_error, cb_success;
+
+        ipcRenderer.once("uninstall-flash-error", cb_error = (_, msg) => {
+            ipcRenderer.removeListener("uninstall-flash-success", cb_success);
             emitter.emit('error', msg);
         });
-        ipcRenderer.once("uninstall-flash-success", () => {
+        ipcRenderer.once("uninstall-flash-success", cb_success = () => {
+            ipcRenderer.removeListener("uninstall-flash-error", cb_error);
             emitter.emit('success');
         });
+
+        ipcRenderer.send("uninstall-flash");
         return emitter;
     },
     electronSets: electronSets
