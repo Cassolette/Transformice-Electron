@@ -8,7 +8,7 @@ import * as electronSets from "electron-settings";
 import * as path from "path";
 import * as url from "url";
 import * as tar from "tar";
-import fetch from "node-fetch";
+import got, { RequestError } from "got";
 
 const RELEASE_CONFIG = "https://raw.githubusercontent.com/Cassolette/flash-binaries/master/release.json";
 
@@ -21,7 +21,7 @@ interface ReleasePerPlatform {
 }
 
 async function getReleaseConfig() : Promise<FlashReleaseConfig> {
-    return await (await fetch(RELEASE_CONFIG)).json() as FlashReleaseConfig;
+    return await got(RELEASE_CONFIG).json() as FlashReleaseConfig;
 }
 
 const ARCH_64 : {[arch: string]: boolean} = {
@@ -103,11 +103,13 @@ async function installFlash(version : string) {
     var file_ext = path.extname(filename);
     var absolute_file = path.join(app.getPath("userData"), filename);
 
+    var write_stream = createWriteStream(absolute_file);
     var streamPipeline = promisify(pipeline);
-    var response = await fetch(rel.url);
-    if (!response.ok) throw `Unexpected response ${response.statusText}`;
-    var stream = createWriteStream(absolute_file);
-    await streamPipeline(response.body, stream);
+    try {
+        await streamPipeline(got.stream(rel.url), write_stream);
+    } catch (e) {
+        throw `Unexpected response: ${e}`;
+    }
 
     if (file_ext == ".tar") {
         // On MacOS, we untar the archive
@@ -207,7 +209,7 @@ export function initIpc() {
 
 /**
  * Uninstalls any scheduled Flash removals. This should be called where your application
- * is most likely to not be locking the plugins (such as at init or exit). 
+ * is most likely to not be locking the plugins (such as at init or exit).
  */
 export function uninstallFlashWorker() {
     var uninstalls = electronSets.getSync("flash.uninstall") as ESettingsFlash['uninstall'];

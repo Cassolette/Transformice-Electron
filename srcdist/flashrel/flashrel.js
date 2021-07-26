@@ -31,11 +31,11 @@ const electronSets = __importStar(require("electron-settings"));
 const path = __importStar(require("path"));
 const url = __importStar(require("url"));
 const tar = __importStar(require("tar"));
-const node_fetch_1 = __importDefault(require("node-fetch"));
+const got_1 = __importDefault(require("got"));
 const RELEASE_CONFIG = "https://raw.githubusercontent.com/Cassolette/flash-binaries/master/release.json";
 var is_installing = false;
 async function getReleaseConfig() {
-    return await (await node_fetch_1.default(RELEASE_CONFIG)).json();
+    return await got_1.default(RELEASE_CONFIG).json();
 }
 const ARCH_64 = {
     "x64": true,
@@ -97,12 +97,14 @@ async function installFlash(version) {
     var filename = path.basename(url.parse(rel.url).pathname);
     var file_ext = path.extname(filename);
     var absolute_file = path.join(electron_1.app.getPath("userData"), filename);
+    var write_stream = fs_1.createWriteStream(absolute_file);
     var streamPipeline = util_1.promisify(stream_1.pipeline);
-    var response = await node_fetch_1.default(rel.url);
-    if (!response.ok)
-        throw `Unexpected response ${response.statusText}`;
-    var stream = fs_1.createWriteStream(absolute_file);
-    await streamPipeline(response.body, stream);
+    try {
+        await streamPipeline(got_1.default.stream(rel.url), write_stream);
+    }
+    catch (e) {
+        throw `Unexpected response: ${e}`;
+    }
     if (file_ext == ".tar") {
         let plugin_path = path.join(electron_1.app.getPath("userData"), `PepperFlash.${version}.plugin`);
         try {

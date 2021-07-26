@@ -81,7 +81,7 @@
   "dependencies": {
     "electron-settings": "^4.0.2",
     "get-port": "^5.1.1",
-    "node-fetch": "3.0.0-beta.9",
+    "got": "^11.8.2",
     "tar": "^6.1.1"
   }
 }
