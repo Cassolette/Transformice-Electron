@@ -69,19 +69,19 @@
   },
   "homepage": "https://github.com/Cassolette/Transformice-Electron#readme",
   "devDependencies": {
-    "@tsconfig/node12": "^1.0.7",
-    "@types/tar": "^4.0.4",
-    "@typescript-eslint/eslint-plugin": "^4.25.0",
-    "@typescript-eslint/parser": "^4.25.0",
-    "electron": "^10.4.7",
-    "electron-builder": "22.10.5",
-    "eslint": "^7.27.0",
-    "typescript": "^4.2.4"
+    "@tsconfig/node12": "^1.0.9",
+    "@types/tar": "^4.0.5",
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
+    "@typescript-eslint/parser": "^4.28.4",
+    "electron": "10.4.7",
+    "electron-builder": "22.11.7",
+    "eslint": "^7.31.0",
+    "typescript": "^4.3.5"
   },
   "dependencies": {
     "electron-settings": "^4.0.2",
     "get-port": "^5.1.1",
-    "node-fetch": "^3.0.0-beta.9",
-    "tar": "^6.1.0"
+    "node-fetch": "3.0.0-beta.9",
+    "tar": "^6.1.1"
   }
 }
