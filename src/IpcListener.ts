@@ -25,7 +25,7 @@ export class IpcListener {
 
         window.browserWindow.on('closed', () => {
             this.removeAllListeners();
-            miniListeners[id] = null;
+            delete miniListeners[id];
         });
     }
 
@@ -54,7 +54,7 @@ export class IpcListener {
             channels[channel].ipcRefs.delete(this);
             if (channels[channel].ipcRefs.size <= 0) {
                 ipcMain.off(channel, channels[channel].listener);
-                channels[channel] = null;
+                delete channels[channel];
             }
         }
 
@@ -68,7 +68,7 @@ export class IpcListener {
             channels[channel].ipcRefs.delete(this);
             if (channels[channel].ipcRefs.size <= 0) {
                 ipcMain.off(channel, channels[channel].listener);
-                channels[channel] = null;
+                delete channels[channel];
             }
         }
 

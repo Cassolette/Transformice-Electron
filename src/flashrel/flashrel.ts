@@ -69,7 +69,6 @@ async function installFlash(version : string) {
     // Check if an uninstallation for this version was scheduled; If so, undo it
     var uninstalls = electronSets.getSync("flash.uninstall") as ESettingsFlash['uninstall'];
     if (Array.isArray(uninstalls)) {
-        let found_uninstall = null;
         for (let i = 0; i < uninstalls.length; i++) {
             if (uninstalls[i].version == version) {
                 // Undo the uninstallation
