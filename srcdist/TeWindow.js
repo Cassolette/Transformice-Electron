@@ -180,22 +180,37 @@ class TeWindow {
                 ]
             }
         ]));
-        let _this = this;
         bwin.webContents.on('did-fail-load', (event, errCode, errDesc) => {
-            _this.onFail(errDesc);
+            this.onFail(errDesc);
         });
-        bwin.webContents.on('new-window', (event, url) => {
+        let nav_handler = (event, url) => {
             event.preventDefault();
-            electron_1.shell.openExternal(url);
-        });
+            electron_1.dialog.showMessageBox(bwin, {
+                type: "question",
+                title: "Open Link",
+                message: "Do you want to open this link in your browser?",
+                detail: url.length > 50 ? url.substring(0, 50 - 3) + "..." : url,
+                noLink: true,
+                buttons: ["Copy to Clipboard", "Cancel", "Yes"],
+                cancelId: 1,
+                defaultId: 2
+            }).then((res) => {
+                if (res.response == 2)
+                    electron_1.shell.openExternal(url);
+                if (res.response == 0)
+                    electron_1.clipboard.writeText(url, "clipboard");
+            });
+        };
+        bwin.webContents.on('will-navigate', nav_handler);
+        bwin.webContents.on('new-window', nav_handler);
         bwin.on('page-title-updated', (event) => {
             event.preventDefault();
         });
         this.browserWindow = bwin;
         this.ipc = new IpcListener_1.IpcListener(this);
         this.ipc.on("send-te-error", (event) => {
-            event.reply("send-te-error", _this.errorDesc);
-            _this.errorDesc = "";
+            event.reply("send-te-error", this.errorDesc);
+            this.errorDesc = "";
         });
     }
     onFail(errDesc) {

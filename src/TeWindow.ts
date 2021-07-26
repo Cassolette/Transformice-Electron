@@ -3,6 +3,7 @@ import * as path from "path";
 import {
     app,
     BrowserWindow,
+    clipboard,
     dialog,
     Menu,
     shell as electronShell
@@ -181,16 +182,29 @@ export abstract class TeWindow {
             }])
         );
 
-        let _this = this;
         bwin.webContents.on('did-fail-load', (event, errCode, errDesc) => {
-            _this.onFail(errDesc);
+            this.onFail(errDesc);
         });
 
         /* Open external links in user's preferred browser rather than in Electron */
-        bwin.webContents.on('new-window', (event, url) => {
+        let nav_handler = (event: Electron.Event, url: string) => {
             event.preventDefault();
-            electronShell.openExternal(url);
-        });
+            dialog.showMessageBox(bwin, {
+                type: "question",
+                title: "Open Link",
+                message: "Do you want to open this link in your browser?",
+                detail: url.length > 50 ? url.substring(0, 50 - 3) + "..." : url,
+                noLink: true,
+                buttons: ["Copy to Clipboard", "Cancel", "Yes"],
+                cancelId: 1,
+                defaultId: 2
+            }).then((res) => {
+                if (res.response == 2) electronShell.openExternal(url);
+                if (res.response == 0) clipboard.writeText(url, "clipboard");
+            });
+        };
+        bwin.webContents.on('will-navigate', nav_handler);
+        bwin.webContents.on('new-window', nav_handler);
 
         /* Don't change the window title */
         bwin.on('page-title-updated', (event) => {
@@ -202,8 +216,8 @@ export abstract class TeWindow {
         this.ipc = new IpcListener(this);
         /* Get error from loading */
         this.ipc.on("send-te-error", (event) => {
-            event.reply("send-te-error", _this.errorDesc);
-            _this.errorDesc = "";
+            event.reply("send-te-error", this.errorDesc);
+            this.errorDesc = "";
         });
     }
 
