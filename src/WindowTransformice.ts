@@ -14,14 +14,22 @@ export class WindowTransformice extends TeWindow {
         /* TODO: Find out if class properties can be overriden before constructor() is called.. */
         this._constructor(httpUrl);
 
-        let _this = this;
+        let is_win32 = process.platform == "win32"
         /* TFM Fullscreen event */
         this.ipc.on("tfm-fullscreen-mode", (event, mode) => {
-            let bwin = _this.browserWindow;
+            let bwin = this.browserWindow;
+            // BUG: Workaround for Windows that fails maximize the window when recently clicked
+            // within Flash Player. Setting a timeout of about 130s also works, but not reliably.
+            // It is currently not known where or what the cause is.
             if (!mode) {
+                if (is_win32) bwin.blur();
                 bwin.setFullScreen(false);
+                bwin.unmaximize();
+                if (is_win32) bwin.focus();
             } else if (mode == 1) {
+                if (is_win32) bwin.blur();
                 bwin.maximize();
+                if (is_win32) bwin.focus();
             }
         });
     }

@@ -31,14 +31,23 @@ class WindowTransformice extends TeWindow_1.TeWindow {
         this.windowWidth = 800;
         this.windowHeight = 600;
         this._constructor(httpUrl);
-        let _this = this;
+        let is_win32 = process.platform == "win32";
         this.ipc.on("tfm-fullscreen-mode", (event, mode) => {
-            let bwin = _this.browserWindow;
+            let bwin = this.browserWindow;
             if (!mode) {
+                if (is_win32)
+                    bwin.blur();
                 bwin.setFullScreen(false);
+                bwin.unmaximize();
+                if (is_win32)
+                    bwin.focus();
             }
             else if (mode == 1) {
+                if (is_win32)
+                    bwin.blur();
                 bwin.maximize();
+                if (is_win32)
+                    bwin.focus();
             }
         });
     }
