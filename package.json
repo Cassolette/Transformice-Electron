@@ -1,6 +1,6 @@
 {
   "name": "transformice-electron",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "A cross-platform Transformice standalone app running on Electron.",
   "main": "srcdist/main.js",
   "scripts": {
