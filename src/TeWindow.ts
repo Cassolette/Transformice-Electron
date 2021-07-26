@@ -4,13 +4,13 @@ import {
     app,
     BrowserWindow,
     dialog,
-    ipcMain,
     Menu,
     shell as electronShell
 } from "electron";
 import { APP_NAME } from "./te-consts";
 import { newTEProcess } from "./te-process";
 import { testHttpServer, retrieveServer } from "./te-server";
+import { IpcListener } from "./IpcListener";
 
 const BASE_DIR = path.join(__dirname, "..");
 
@@ -23,6 +23,8 @@ export abstract class TeWindow {
     /** The underlying electron browser window */
     public browserWindow: BrowserWindow;
     protected prefsWin: BrowserWindow;
+    /** An interface to communicate with the underlying renderer process via IPC */
+    protected ipc: IpcListener;
     /** The description of the last error that happened */
     protected errorDesc: string = "";
     protected windowTitle: string = APP_NAME;
@@ -197,12 +199,11 @@ export abstract class TeWindow {
 
         this.browserWindow = bwin;
 
+        this.ipc = new IpcListener(this);
         /* Get error from loading */
-        ipcMain.on("send-te-error", (event) => {
-            if (bwin.webContents.id == event.sender.id) {
-                event.reply("send-te-error", _this.errorDesc);
-                _this.errorDesc = "";
-            }
+        this.ipc.on("send-te-error", (event) => {
+            event.reply("send-te-error", _this.errorDesc);
+            _this.errorDesc = "";
         });
     }
 

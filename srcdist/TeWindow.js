@@ -26,6 +26,7 @@ const electron_1 = require("electron");
 const te_consts_1 = require("./te-consts");
 const te_process_1 = require("./te-process");
 const te_server_1 = require("./te-server");
+const IpcListener_1 = require("./IpcListener");
 const BASE_DIR = path.join(__dirname, "..");
 const FILE_BASE = "file://" + BASE_DIR;
 const FILE_URL_FAILURE = FILE_BASE + "/resources/failure.html";
@@ -191,11 +192,10 @@ class TeWindow {
             event.preventDefault();
         });
         this.browserWindow = bwin;
-        electron_1.ipcMain.on("send-te-error", (event) => {
-            if (bwin.webContents.id == event.sender.id) {
-                event.reply("send-te-error", _this.errorDesc);
-                _this.errorDesc = "";
-            }
+        this.ipc = new IpcListener_1.IpcListener(this);
+        this.ipc.on("send-te-error", (event) => {
+            event.reply("send-te-error", _this.errorDesc);
+            _this.errorDesc = "";
         });
     }
     onFail(errDesc) {

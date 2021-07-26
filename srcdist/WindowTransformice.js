@@ -20,7 +20,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindowTransformice = void 0;
-const electron_1 = require("electron");
 const electronSets = __importStar(require("electron-settings"));
 const TeWindow_1 = require("./TeWindow");
 const PATH_URL_TRANSFORMICE = "/tfm.html";
@@ -33,15 +32,13 @@ class WindowTransformice extends TeWindow_1.TeWindow {
         this.windowHeight = 600;
         this._constructor(httpUrl);
         let _this = this;
-        electron_1.ipcMain.on("tfm-fullscreen-mode", (event, mode) => {
+        this.ipc.on("tfm-fullscreen-mode", (event, mode) => {
             let bwin = _this.browserWindow;
-            if (bwin.webContents.id == event.sender.id) {
-                if (!mode) {
-                    bwin.setFullScreen(false);
-                }
-                else if (mode == 1) {
-                    bwin.maximize();
-                }
+            if (!mode) {
+                bwin.setFullScreen(false);
+            }
+            else if (mode == 1) {
+                bwin.maximize();
             }
         });
     }

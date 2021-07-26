@@ -1,4 +1,3 @@
-import { ipcMain } from "electron";
 import * as electronSets from "electron-settings";
 import { TeWindow } from "./TeWindow";
 
@@ -17,14 +16,12 @@ export class WindowTransformice extends TeWindow {
 
         let _this = this;
         /* TFM Fullscreen event */
-        ipcMain.on("tfm-fullscreen-mode", (event, mode) => {
+        this.ipc.on("tfm-fullscreen-mode", (event, mode) => {
             let bwin = _this.browserWindow;
-            if (bwin.webContents.id == event.sender.id) {
-                if (!mode) {
-                    bwin.setFullScreen(false);
-                } else if (mode == 1) {
-                    bwin.maximize();
-                }
+            if (!mode) {
+                bwin.setFullScreen(false);
+            } else if (mode == 1) {
+                bwin.maximize();
             }
         });
     }
