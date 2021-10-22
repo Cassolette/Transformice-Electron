@@ -1,0 +1,35 @@
+{
+    "$schema": "./_release_schema-v1.json",
+    "jsonVersion": 1,
+    "homepage": "https://cassolette.github.io/Transformice-Electron/",
+    "archLatest": {
+        "windows": {
+            "stable": "2.0.10"
+        },
+        "macos": {
+            "stable": "2.0.10"
+        },
+        "linux": {
+            "stable": "1.1.8"
+        }
+    },
+    "urlSyntax": {
+        "windows": "https://github.com/Cassolette/Transformice-Electron/releases/download/v{$version}/Transformice.Setup.{$version}.exe",
+        "macos": "https://github.com/Cassolette/Transformice-Electron/releases/download/v{$version}/Transformice-{$version}.dmg"
+    },
+    "releaseMeta": {
+        "2.0.10": {
+            "version": "2.0.10",
+            "incrementalVersion": 1000,
+            "type": "stable"
+        },
+        "1.1.8": {
+            "version": "1.1.8",
+            "incrementalVersion": 100,
+            "type": "stable",
+            "overrideArchUrl": {
+                "linux": "https://github.com/Cassolette/Transformice-Electron/releases/download/1.1.8/transformice-electron_1.1.8_amd64.snap"
+            }
+        }
+    }
+}
