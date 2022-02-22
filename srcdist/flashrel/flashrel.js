@@ -67,7 +67,6 @@ async function getReleasePerPlatform() {
 async function installFlash(version) {
     var uninstalls = electronSets.getSync("flash.uninstall");
     if (Array.isArray(uninstalls)) {
-        let found_uninstall = null;
         for (let i = 0; i < uninstalls.length; i++) {
             if (uninstalls[i].version == version) {
                 await electronSets.set("flash.currentVersion", version);

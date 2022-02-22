@@ -16,7 +16,7 @@ class IpcListener {
         miniListeners[id] = this.miniListener;
         window.browserWindow.on('closed', () => {
             this.removeAllListeners();
-            miniListeners[id] = null;
+            delete miniListeners[id];
         });
     }
     on(channel, listener) {
@@ -41,7 +41,7 @@ class IpcListener {
             channels[channel].ipcRefs.delete(this);
             if (channels[channel].ipcRefs.size <= 0) {
                 electron_1.ipcMain.off(channel, channels[channel].listener);
-                channels[channel] = null;
+                delete channels[channel];
             }
         }
         return this;
@@ -52,7 +52,7 @@ class IpcListener {
             channels[channel].ipcRefs.delete(this);
             if (channels[channel].ipcRefs.size <= 0) {
                 electron_1.ipcMain.off(channel, channels[channel].listener);
-                channels[channel] = null;
+                delete channels[channel];
             }
         };
         if (channel) {

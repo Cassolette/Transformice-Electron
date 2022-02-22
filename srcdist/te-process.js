@@ -28,8 +28,12 @@ function newTEProcess(gameId) {
     let argv = argp.toArgv();
     let child_proc = proc.spawn(argv[0], argv.slice(1), {
         detached: true,
-        stdio: 'ignore',
-        windowsHide: false
+        stdio: 'inherit',
+        windowsHide: false,
+        shell: true
+    });
+    child_proc.on("error", (err) => {
+        console.error("child err", err);
     });
     child_proc.unref();
 }

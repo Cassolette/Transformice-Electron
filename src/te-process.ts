@@ -8,6 +8,7 @@ export function newTEProcess(gameId: TeGames) {
 
     let argv = argp.toArgv();
     let child_proc = proc.spawn(argv[0], argv.slice(1), {
+        shell: true,        // Delegate command parsing to the shell, which can solve some issues on Windows
         detached: true,     // Let the child continue to run even when this process exits
         stdio: 'ignore',    // Set to 'inherit' to have the child's stdio route to this process' (useful for debugging), 'ignore' otherwise
         windowsHide: false  // We want to show the window, duh.
