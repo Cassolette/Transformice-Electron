@@ -8,6 +8,7 @@ import { initIpc, uninstallFlashWorker } from "./flashrel/flashrel";
 import { ArgpObject } from "./argparser";
 import * as electronSets from "electron-settings";
 import * as path from "path";
+import { releaseRemovalWorker } from "./updaterel/updaterel";
 
 const BASE_DIR = path.join(__dirname, "..");
 
@@ -120,6 +121,7 @@ function createWindow(gameType: TeGames, httpUrl: string) : TeWindow {
     var argp = new ArgpObject(process.argv);
 
     addFlashPlugin();
+    releaseRemovalWorker();
 
     // Register callbacks
     app.whenReady().then(readyHandler.appReady);

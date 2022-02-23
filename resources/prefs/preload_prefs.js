@@ -48,5 +48,13 @@ window.electron = {
         ipcRenderer.send("uninstall-flash");
         return emitter;
     },
+    hasUpdate: () => {
+        return new Promise((resolve, reject) => {
+            ipcRenderer.send("rel-hasUpdate");
+            ipcRenderer.once("rel-hasUpdate", (_ev, hasUpdate) => {
+                resolve(hasUpdate);
+            });
+        });
+    },
     electronSets: electronSets
 };

@@ -27,13 +27,10 @@ function newTEProcess(gameId) {
     argp.setFlag("game-id", gameId.toString());
     let argv = argp.toArgv();
     let child_proc = proc.spawn(argv[0], argv.slice(1), {
+        shell: true,
         detached: true,
-        stdio: 'inherit',
-        windowsHide: false,
-        shell: true
-    });
-    child_proc.on("error", (err) => {
-        console.error("child err", err);
+        stdio: 'ignore',
+        windowsHide: false
     });
     child_proc.unref();
 }
