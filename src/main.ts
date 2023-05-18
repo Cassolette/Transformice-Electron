@@ -79,12 +79,19 @@ function addFlashPlugin() {
     let iden;
     switch (process.platform) {
         case 'win32':
-            iden = "win";
-            pluginName = "pepflashplayer64_32_0_0_371.dll";
+            if (process.arch === "x64") {
+                iden = "win";
+                pluginName = "pepflashplayer64_32_0_0_371.dll";
+            }
             break;
         case 'linux':
-            iden = "lnx";
-            pluginName = "libpepflashplayer64_32_0_0_371.so";
+            if (process.arch === "x64") {
+                iden = "lnx";
+                pluginName = "libpepflashplayer64_32_0_0_371.so";
+            } else if (process.arch === "arm") {
+                iden = "lnx";
+                pluginName = "libpepflashplayer_arm32.so";
+            }
             break;
         case 'darwin':
             iden = "mac";
